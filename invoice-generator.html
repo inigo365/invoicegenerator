@@ -2457,8 +2457,29 @@ async function handlePDFFiles(files) {
     try {
       let { pages, lines } = await extractPDFText(file);
 
-      // Detect and fix character-spaced PDFs
+      // Empty text = outlined/vector PDF — PDF.js cannot extract anything
       const rawFull = pages.join('\n\n--- PAGE BREAK ---\n\n');
+      if (!rawFull.trim()) {
+        // Show message in debug panel; do NOT add a blank tracker row
+        const existingDbg = document.getElementById('pdf-debug');
+        if (existingDbg) existingDbg.remove();
+        const dbgDiv = document.createElement('div');
+        dbgDiv.id = 'pdf-debug';
+        dbgDiv.style.cssText = 'position:fixed;top:20px;right:20px;width:440px;background:#fff;border:2px solid #e07b00;padding:16px;z-index:9999;font-size:13px;font-family:sans-serif;border-radius:8px;';
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✕ Close';
+        closeBtn.style.cssText = 'display:block;margin-bottom:10px;cursor:pointer;';
+        closeBtn.onclick = () => dbgDiv.remove();
+        dbgDiv.appendChild(closeBtn);
+        const msg = document.createElement('div');
+        msg.innerHTML = `<strong>⚠ Cannot parse: ${file.name}</strong><br><br>This PDF uses outlined or vector text — PDF.js cannot extract any content from it. Please add this invoice to the tracker manually.`;
+        dbgDiv.appendChild(msg);
+        document.body.appendChild(dbgDiv);
+        setStatus(`Skipped ${file.name} — outlined PDF (no extractable text).`);
+        continue;
+      }
+
+      // Detect and fix character-spaced PDFs
       let displayText = rawFull;
       let isSpaced    = (rawFull.match(/\b[A-Za-z]\s[A-Za-z]\s[A-Za-z]\b/g) || []).length > 3;
 
@@ -2542,81 +2563,104 @@ async function handlePDFFiles(files) {
 function parseConcatenatedPDF(text, matchLog) {
   const result = {};
 
-  // Invoice number
+  // ── Invoice number ───────────────────────────────────────────────
   const invM = text.match(/INV-\d+/i);
   if (invM) { result.invoiceNo = invM[0].toUpperCase(); if (matchLog) matchLog.invoiceNo = 'INV-\\d+'; }
 
-  // Date: first d/m/yyyy pattern
+  // ── Date: first d/m/yyyy pattern ────────────────────────────────
   const dateM = text.match(/\d{1,2}\/\d{1,2}\/\d{2,4}/);
   if (dateM) { result.date = dateM[0]; if (matchLog) matchLog.date = 'd/m/yyyy'; }
 
-  // Amount: FIRST £/$/€ match only
-  const amtM = text.match(/£(\d+(?:\.\d{2})?)/);
-  if (amtM) {
-    result.amount = amtM[1];
-    result.tax    = (parseFloat(amtM[1]) * 0.20).toFixed(2);
-    if (matchLog) matchLog.amount = '£(\\d+)';
+  // ── Amount: last £ value before "Allinvoices" ───────────────────
+  // Real invoices repeat amounts (subtotal, VAT, total); the last one is always the grand total.
+  const allinvPos = text.search(/Allinvoices/i);
+  const preAllinv = allinvPos > 0 ? text.slice(0, allinvPos) : text;
+  const allAmtMatches = [...preAllinv.matchAll(/£(\d+(?:\.\d{2})?)/g)];
+  if (allAmtMatches.length > 0) {
+    const lastAmt = allAmtMatches[allAmtMatches.length - 1][1];
+    result.amount = lastAmt;
+    result.tax    = (parseFloat(lastAmt) * 0.20).toFixed(2);
+    if (matchLog) matchLog.amount = 'last £ before Allinvoices';
   }
 
-  // Client: text immediately after "Billedto:" / "BilledTo:" / "Billed to:", next 20 chars before digit/postcode
-  const billM = text.match(/billed?\s*to\s*:?\s*([A-Za-z][^\d\n]{1,30})/i);
-  if (billM) {
-    // Stop at digit, postcode start (letter+digit), or punctuation run
-    const raw = billM[1].replace(/\s+/g, ' ').trim();
-    const clipped = raw.replace(/\s*[A-Z]\d.*/,'').replace(/\s*\d.*/,'').trim();
-    if (clipped.length > 1) { result.client = clipped.slice(0, 40); if (matchLog) matchLog.client = 'after Billedto:'; }
+  // ── Client name: token(s) immediately after "E82ER" ─────────────
+  // "E82ER" is always the end of the sender's postcode in these invoices.
+  // Skip any "Billedto:" / "BilledTo:" token, then take the next token.
+  const e82Pos = text.indexOf('E82ER');
+  let clientEndPos = -1;
+  if (e82Pos !== -1) {
+    const afterAddr = text.slice(e82Pos + 5).trimStart();
+    const tokens = afterAddr.split(/\s+/);
+    let startIdx = 0;
+    // Skip optional "Billedto:" prefix
+    if (/^billed?\s*to\s*:?$/i.test(tokens[0])) startIdx = 1;
+    const clientToken = tokens[startIdx] || '';
+    if (clientToken.length > 1) {
+      result.client = clientToken.slice(0, 60);
+      if (matchLog) matchLog.client = 'after E82ER';
+      // Record where the client token ends in the original text so desc search starts after it
+      clientEndPos = e82Pos + 5 + afterAddr.indexOf(clientToken) + clientToken.length;
+    }
   }
-
-  // Description: priority order —
-  // (a) longest token after last £-amount and before Sort/Account/Monzo noise
-  // (b) fallback: last filtered token from pre-noise section
-  const noiseRx = /Allinvoices|Sortcode|Sort\s*code|Account|Monzo/i;
-  const noisePos = text.search(noiseRx);
-  const preNoise = noisePos > 0 ? text.slice(0, noisePos) : text;
-
-  // Shared token filter
-  const isDescNoise = t =>
-    t.length < 6 ||
-    !t ||
-    /@/.test(t) ||
-    /\./.test(t) ||
-    /http/i.test(t) ||
-    /Sort/i.test(t) ||
-    /Account/i.test(t) ||
-    /Monzo/i.test(t) ||
-    /Pounds/i.test(t) ||
-    /icloud/i.test(t) ||
-    /gmail/i.test(t) ||
-    /shown/i.test(t) ||
-    /number/i.test(t) ||
-    /code/i.test(t) ||
-    /^com$/i.test(t) ||
-    /^\d+$/.test(t) ||
-    /^[£$€]/.test(t) ||
-    /^£?\d+(?:\.\d{2})?$/.test(t) ||
-    /^[a-z]{2,}$/.test(t);   // all-lowercase collapsed fragment (email/URL artefact)
-
-  let foundDesc = null;
-
-  // (a) After the last £-amount in preNoise
-  const allAmts = [...preNoise.matchAll(/£\d+(?:\.\d{2})?/g)];
-  if (allAmts.length > 0) {
-    const lastAmtEnd = allAmts[allAmts.length - 1].index + allAmts[allAmts.length - 1][0].length;
-    const afterAmt = preNoise.slice(lastAmtEnd);
-    const candidatesA = afterAmt.split(/\s+/).filter(t => !isDescNoise(t));
-    if (candidatesA.length > 0) {
-      // Pick longest candidate
-      foundDesc = candidatesA.reduce((a, b) => b.length > a.length ? b : a);
-      if (matchLog) matchLog.desc = 'after last £ amount';
+  // Fallback: legacy "Billed to:" pattern if E82ER not found
+  if (!result.client) {
+    const billM = text.match(/billed?\s*to\s*:?\s*([A-Za-z][^\d\n]{1,40})/i);
+    if (billM) {
+      const raw     = billM[1].replace(/\s+/g, ' ').trim();
+      const clipped = raw.replace(/\s*[A-Z]\d.*/,'').replace(/\s*\d.*/,'').trim();
+      if (clipped.length > 1) {
+        result.client = clipped.slice(0, 60);
+        if (matchLog) matchLog.client = 'after Billedto: (fallback)';
+        clientEndPos  = text.indexOf(billM[0]) + billM[0].length;
+      }
     }
   }
 
-  // (b) Fallback: last filtered token from preNoise
+  // ── Description ──────────────────────────────────────────────────
+  // Known job-keyword prefixes that mark the start of a description token
+  const JOB_WORDS = /Crewing|Lighting|Striking|Assist|Holiday|Spark|Rigging|Focus|Camera|Sound|Editing|Shoot|Film|Gaffer|Grip|Stage|Set|Rate|Day|Week/i;
+  // Known noise patterns — tokens matching these are skipped
+  const isDescNoise = t =>
+    !t || t.length < 9 ||
+    /SortCode|Sort\s*code|Account|Monzo|Pounds|icloud|gmail|shown|number|AllinvoicesareinGreatBritish/i.test(t) ||
+    /^[a-z]{2,}$/.test(t) ||        // all-lowercase collapsed email/URL fragment
+    /^[A-Z]{1,2}\d{1,2}[A-Z]?\d[A-Z]{2}$/.test(t) || // postcode
+    /^£?\d+(?:\.\d{2})?$/.test(t) || // pure number / currency
+    /^\d+$/.test(t) ||
+    /^[£$€]/.test(t);
+
+  // Cutoff: stop search at noise boundary
+  const noiseCutPos = text.search(/Allinvoices|Sortcode|Sort\s*code|Account\s*number|Monzo/i);
+  const searchZone  = noiseCutPos > 0 ? text.slice(0, noiseCutPos) : text;
+
+  let foundDesc     = null;
+
+  // (a) First valid token after client, preferring tokens that start with a job keyword
+  if (clientEndPos > 0 && clientEndPos < searchZone.length) {
+    const afterClient = searchZone.slice(clientEndPos).trimStart();
+    const tokens      = afterClient.split(/\s+/);
+    // Try job-keyword token first
+    const kwToken = tokens.find(t => !isDescNoise(t) && JOB_WORDS.test(t));
+    if (kwToken) {
+      foundDesc = kwToken;
+      if (matchLog) matchLog.desc = 'job-keyword token after client';
+    } else {
+      // First non-noise token of adequate length
+      const firstToken = tokens.find(t => !isDescNoise(t));
+      if (firstToken) {
+        foundDesc = firstToken;
+        if (matchLog) matchLog.desc = 'first non-noise token after client';
+      }
+    }
+  }
+
+  // (b) Fallback: last non-noise token in the search zone (e.g. Julia Dias invoice where
+  //     the description sits at the end just before SortCode)
   if (!foundDesc) {
-    const candidatesB = preNoise.split(/\s+/).filter(t => !isDescNoise(t));
-    if (candidatesB.length > 0) {
-      foundDesc = candidatesB[candidatesB.length - 1];
-      if (matchLog) matchLog.desc = 'last filtered token (fallback)';
+    const allTokens = searchZone.split(/\s+/).filter(t => !isDescNoise(t));
+    if (allTokens.length > 0) {
+      foundDesc = allTokens[allTokens.length - 1];
+      if (matchLog) matchLog.desc = 'last non-noise token (fallback)';
     }
   }
 
