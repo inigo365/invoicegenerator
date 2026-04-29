@@ -370,6 +370,7 @@
 
     /* ── Tracker table ── */
     .tracker-scroll-wrapper {
+      width: 100%;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
       border-radius: var(--radius);
@@ -380,7 +381,7 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 0.8rem;
-      min-width: 1000px;
+      min-width: 1100px;
     }
     .tracker-table th {
       background: var(--accent-dark);
@@ -1020,6 +1021,50 @@ function in30days() {
   return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
 }
 
+// Parse a user-typed date string; returns a Date or null.
+// Handles: DD/MM/YYYY, MM/DD/YYYY, D/M/YY, YYYY-MM-DD, "15 Jan 2025", "Jan 15, 2025"
+function parseUserDate(str) {
+  if (!str) return null;
+  str = str.trim();
+  // ISO: YYYY-MM-DD
+  let m = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (m) return new Date(+m[1], +m[2]-1, +m[3]);
+  // Slash-separated: D/M/YY or D/M/YYYY — treat as DD/MM (en-GB default)
+  m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (m) {
+    let year = +m[3];
+    if (year < 100) year += 2000;
+    const d = new Date(year, +m[2]-1, +m[1]);
+    if (!isNaN(d)) return d;
+  }
+  // "15 Jan 2025" or "Jan 15, 2025"
+  const attempt = new Date(str);
+  if (!isNaN(attempt)) return attempt;
+  return null;
+}
+
+function formatLikeSrc(d, srcStr) {
+  // Mirror the format of the source string
+  if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(srcStr)) {
+    return d.toISOString().slice(0, 10);
+  }
+  if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(srcStr)) {
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth()+1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  }
+  return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function updateDueDateFrom(srcStr) {
+  const parsed = parseUserDate(srcStr);
+  if (!parsed) return;
+  const due = new Date(parsed);
+  due.setDate(due.getDate() + 30);
+  document.getElementById('f-dueDate').textContent = formatLikeSrc(due, srcStr);
+}
+
 function esc(s) {
   return (s || '').toString()
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1254,6 +1299,14 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-field]').forEach(el => {
     el.addEventListener('input', saveInvoice);
   });
+
+  // Auto-calculate due date when invoice date changes
+  const invoiceDateEl = document.getElementById('f-invoiceDate');
+  const onDateChange  = () => updateDueDateFrom(invoiceDateEl.textContent.trim());
+  invoiceDateEl.addEventListener('input', onDateChange);
+  invoiceDateEl.addEventListener('blur',  onDateChange);
+  // Run once now in case a date was loaded from localStorage
+  onDateChange();
 
   // PDF drop zone
   setupDrop();
@@ -1583,9 +1636,11 @@ function addTrackerRow(data) {
   });
 
   const td = document.createElement('td');
+  td.style.cssText = 'text-align:center;padding:0;width:44px;';
   const btn = document.createElement('button');
   btn.textContent = '×';
-  btn.style.cssText = 'background:none;border:none;color:#cc0000;font-size:18px;cursor:pointer;padding:4px 8px;';
+  const accentHex = localStorage.getItem('inv_accent_color') || '#2a7c7c';
+  btn.style.cssText = `background:none;border:none;color:${accentHex};font-size:18px;cursor:pointer;padding:4px 8px;`;
   btn.onclick = function() {
     if (confirm('Delete this row?')) {
       tr.remove();
@@ -1660,21 +1715,32 @@ async function handlePDFFiles(files) {
       // Detect and fix character-spaced PDFs
       const rawFull = pages.join('\n\n--- PAGE BREAK ---\n\n');
       let displayText = rawFull;
-      let wasSpaced   = false;
-      if (isCharSpaced(rawFull)) {
-        wasSpaced   = true;
-        const cleanPages = pages.map(p => collapseCharSpacing(p));
-        pages       = cleanPages;
-        lines       = cleanPages.join('\n').split('\n').map(l => l.trim()).filter(Boolean);
-        displayText = cleanPages.join('\n\n--- PAGE BREAK ---\n\n');
+      let isSpaced    = (rawFull.match(/\b[A-Za-z]\s[A-Za-z]\s[A-Za-z]\b/g) || []).length > 3;
+
+      if (isSpaced) {
+        let cleaned = rawFull;
+        // Run collapse exactly 3 times to catch multi-character sequences
+        for (let i = 0; i < 3; i++) {
+          cleaned = cleaned.replace(/([A-Za-z0-9£])\s([A-Za-z0-9£])/g, '$1$2');
+        }
+        displayText = cleaned;
+        lines = cleaned.split('\n').map(l => l.trim()).filter(Boolean);
         console.log('PDF TEXT (char-spacing collapsed):', displayText);
       } else {
         console.log('PDF RAW TEXT:', rawFull);
       }
 
-      // Choose parser
-      const parsed   = wasSpaced ? parseConcatenatedPDF(displayText) : parsePDFText(lines, file.name);
-      const pathUsed = wasSpaced ? 'concatenated-text path' : 'normal path';
+      // Choose parser and record which regex matched each field
+      let parsed, pathUsed, matchLog;
+      if (isSpaced) {
+        pathUsed  = 'concatenated-text path';
+        matchLog  = {};
+        parsed    = parseConcatenatedPDF(displayText, matchLog);
+      } else {
+        pathUsed  = 'normal path';
+        matchLog  = null;
+        parsed    = parsePDFText(lines, file.name);
+      }
       console.log(`[PDF Parser] Using ${pathUsed}`, parsed);
 
       // Debug panel
@@ -1682,7 +1748,7 @@ async function handlePDFFiles(files) {
       if (existingDbg) existingDbg.remove();
       const dbgDiv = document.createElement('div');
       dbgDiv.id = 'pdf-debug';
-      dbgDiv.style.cssText = 'position:fixed;top:20px;right:20px;width:420px;max-height:80vh;overflow-y:scroll;background:#fff;border:2px solid red;padding:16px;z-index:9999;font-size:12px;white-space:pre-wrap;font-family:monospace;';
+      dbgDiv.style.cssText = 'position:fixed;top:20px;right:20px;width:440px;max-height:80vh;overflow-y:scroll;background:#fff;border:2px solid red;padding:16px;z-index:9999;font-size:12px;white-space:pre-wrap;font-family:monospace;';
       const closeBtn = document.createElement('button');
       closeBtn.textContent = '✕ Close';
       closeBtn.style.cssText = 'display:block;margin-bottom:8px;cursor:pointer;';
@@ -1690,12 +1756,16 @@ async function handlePDFFiles(files) {
       dbgDiv.appendChild(closeBtn);
 
       const parsedSummary = ['invoiceNo','date','client','desc','amount','tax']
-        .map(k => `${k}: ${parsed[k] || '(not found)'}`)
+        .map(k => {
+          const val     = parsed[k] || '(not found)';
+          const matched = matchLog && matchLog[k] ? ` [${matchLog[k]}]` : '';
+          return `${k}: ${val}${matched}`;
+        })
         .join('\n');
-      const textLabel = wasSpaced ? 'CLEANED TEXT (char-spacing collapsed):' : 'RAW PDF TEXT:';
+      const textLabel = isSpaced ? `CLEANED TEXT (isSpaced=true):` : 'RAW PDF TEXT:';
       const dbgContent = document.createElement('div');
       dbgContent.innerHTML =
-        `<strong>Parser path: ${pathUsed}</strong>\n\n` +
+        `<strong>isSpaced: ${isSpaced}</strong>  <strong>path: ${pathUsed}</strong>\n\n` +
         `<strong>Parsed values:</strong>\n${parsedSummary.replace(/&/g,'&amp;').replace(/</g,'&lt;')}\n\n` +
         `<strong>${textLabel}</strong>\n\n` +
         displayText.replace(/&/g,'&amp;').replace(/</g,'&lt;');
@@ -1722,66 +1792,47 @@ async function handlePDFFiles(files) {
   document.getElementById('pdfInput').value = '';
 }
 
-function isCharSpaced(text) {
-  // Check if the text opens with the classic spaced-character pattern: "I N V - 0 1 4 ..."
-  return /^([A-Za-z] ){5,}/.test(text.trimStart());
-}
-
-function collapseCharSpacing(text) {
-  // Only collapse gaps where BOTH surrounding chars are isolated single characters.
-  // Pattern: \b([A-Za-z])\s(?=[A-Za-z]\s) — a single letter at a word boundary followed by
-  // space, with lookahead of another single letter + space. This avoids collapsing real words.
-  let prev = null;
-  while (prev !== text) {
-    prev = text;
-    text = text.replace(/\b([A-Za-z])\s(?=[A-Za-z]\s)/g, '$1');
-  }
-  return text.replace(/ {2,}/g, ' ').trim();
-}
-
-function parseConcatenatedPDF(text) {
+function parseConcatenatedPDF(text, matchLog) {
   const result = {};
 
-  // Invoice number: clean token like INV-014
+  // Invoice number
   const invM = text.match(/INV-\d+/i);
-  if (invM) result.invoiceNo = invM[0].toUpperCase();
+  if (invM) { result.invoiceNo = invM[0].toUpperCase(); if (matchLog) matchLog.invoiceNo = 'INV-\\d+'; }
 
-  // Date: first d/m/yyyy or similar
+  // Date: first d/m/yyyy pattern
   const dateM = text.match(/\d{1,2}\/\d{1,2}\/\d{2,4}/);
-  if (dateM) result.date = dateM[0];
+  if (dateM) { result.date = dateM[0]; if (matchLog) matchLog.date = 'd/m/yyyy'; }
 
-  // Amount: first currency symbol + digits
-  const amtM = text.match(/[£$€]([\d,]+\.?\d{0,2})/);
+  // Amount: FIRST £/$/€ match only
+  const amtM = text.match(/£(\d+(?:\.\d{2})?)/);
   if (amtM) {
-    result.amount = amtM[1].replace(/,/g, '');
-    result.tax    = (parseFloat(result.amount) * 0.20).toFixed(2);
+    result.amount = amtM[1];
+    result.tax    = (parseFloat(amtM[1]) * 0.20).toFixed(2);
+    if (matchLog) matchLog.amount = '£(\\d+)';
   }
 
-  // Client: after "Billedto:" or "Billed to:" — first token starting with capital that isn't a postcode
-  const billIdx = text.search(/billed?\s*to\s*:?/i);
-  if (billIdx !== -1) {
-    const afterBill = text.slice(billIdx).replace(/billed?\s*to\s*:?\s*/i, '');
-    for (const tok of afterBill.split(/\s+/)) {
-      if (!tok || tok.length < 2) continue;
-      // Skip postcodes: letters+digits mixed short tokens like E82ER, W1A1AA
-      if (/^[A-Z]\d/i.test(tok) || /\d[A-Z]$/i.test(tok)) continue;
-      // Skip common address words and emails
-      if (/^(road|street|avenue|lane|close|drive|place|way|court|london|manchester|birmingham|uk)$/i.test(tok)) continue;
-      if (/@/.test(tok)) continue;
-      if (/^[A-Z]/i.test(tok)) { result.client = tok; break; }
-    }
+  // Client: text immediately after "Billedto:" / "BilledTo:" / "Billed to:", next 20 chars before digit/postcode
+  const billM = text.match(/billed?\s*to\s*:?\s*([A-Za-z][^\d\n]{1,30})/i);
+  if (billM) {
+    // Stop at digit, postcode start (letter+digit), or punctuation run
+    const raw = billM[1].replace(/\s+/g, ' ').trim();
+    const clipped = raw.replace(/\s*[A-Z]\d.*/,'').replace(/\s*\d.*/,'').trim();
+    if (clipped.length > 1) { result.client = clipped.slice(0, 40); if (matchLog) matchLog.client = 'after Billedto:'; }
   }
 
-  // Description: last meaningful token — not URL, email, sort code (6 digits), account no (8 digits), currency
-  const tokens = text.split(/\s+/).filter(t =>
-    t.length > 3 &&
-    !/^https?:\/\//i.test(t) &&
+  // Description: last token >5 chars before "Allinvoices", "Sort", or end — not postcode or pure number
+  const stopM = text.search(/Allinvoices|Sortcode|Sort code|Account/i);
+  const searchIn = stopM > 0 ? text.slice(0, stopM) : text;
+  const tokens = searchIn.split(/\s+/).filter(t =>
+    t.length > 5 &&
+    !/^\d+$/.test(t) &&
+    !/^[A-Z]\d/i.test(t) &&
+    !/\d[A-Z]$/i.test(t) &&
     !/@/.test(t) &&
-    !/^\d{6}$/.test(t) &&
-    !/^\d{8}$/.test(t) &&
-    !/^[£$€]/.test(t)
+    !/^[£$€]/.test(t) &&
+    !/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(t)
   );
-  if (tokens.length > 0) result.desc = tokens[tokens.length - 1];
+  if (tokens.length > 0) { result.desc = tokens[tokens.length - 1]; if (matchLog) matchLog.desc = 'last token before stop'; }
 
   return result;
 }
