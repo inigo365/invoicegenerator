@@ -121,6 +121,41 @@
       min-height: 28px;
       line-height: 1.6;
     }
+    /* Placeholder hint on empty contenteditable spans */
+    .editable:empty::before {
+      content: attr(data-placeholder);
+      color: #b0b8c4;
+      pointer-events: none;
+      font-style: normal;
+      font-weight: 400;
+    }
+    .editable:focus:empty::before { color: #ccd2da; }
+
+    /* ── Address textarea (desktop: invisible, natural; mobile: overridden in @media block) ── */
+    .address-textarea {
+      display: block;
+      width: 100%;
+      border: 1.5px dotted transparent;
+      background: transparent;
+      font-family: var(--font);
+      font-size: 0.85rem;
+      color: var(--text);
+      resize: none;
+      outline: none;
+      line-height: 1.6;
+      padding: 2px 4px;
+      border-radius: 3px;
+      transition: border-color .15s, background .15s;
+      min-height: 72px;
+      overflow: hidden;
+    }
+    .address-textarea:hover,
+    .address-textarea:focus {
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+    .address-textarea::placeholder { color: #b0b8c4; font-style: normal; }
+    .address-textarea:focus::placeholder { color: #ccd2da; }
 
     /* ── Invoice header ── */
     .invoice-header {
@@ -461,6 +496,24 @@
       font-size: 12px;
     }
     .tracker-table tfoot td:first-child { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+    /* Checkbox cells */
+    .tracker-cb-td { text-align: center; padding: 0 4px !important; vertical-align: middle !important; }
+    .tracker-cb {
+      width: 16px; height: 16px; cursor: pointer;
+      accent-color: var(--accent);
+      display: block; margin: auto;
+    }
+    /* Row tints — tr-paid declared last so it wins over tr-taxaside */
+    .tracker-table tbody tr.tr-taxaside td   { background: rgba(0,100,200,0.08) !important; }
+    .tracker-table tbody tr.tr-paid td       { background: rgba(0,150,0,0.08) !important; }
+    /* Tax rate header input */
+    .tracker-tax-rate-wrap { display: flex; align-items: center; gap: 2px; white-space: nowrap; }
+    .tracker-tax-rate-input {
+      width: 38px; padding: 1px 3px; font-size: 10px; font-weight: 700;
+      border: 1px solid rgba(255,255,255,0.4); border-radius: 3px;
+      background: rgba(255,255,255,0.15); color: #fff; text-align: right;
+    }
+    .tracker-tax-rate-input:focus { outline: none; background: rgba(255,255,255,0.25); }
     /* Delete confirm modal */
     #deleteConfirmModal {
       display: none; position: fixed; inset: 0;
@@ -718,9 +771,7 @@
     @media (max-width: 768px) {
       /* Hide desktop-only regions */
       .page-content,
-      .colour-picker-bar,
-      .tracker-section,
-      .section-divider { display: none !important; }
+      .colour-picker-bar { display: none !important; }
       /* Controls bar: hide action buttons (replaced by sticky bar) */
       .controls-bar .btn { display: none !important; }
 
@@ -1147,49 +1198,31 @@
       <div class="mob-section-body">
         <div class="mob-field">
           <label class="mob-label">Business Name</label>
-          <input class="mob-input" data-mfield="businessName" type="text" placeholder="Your Business Name">
-        </div>
-        <div class="mob-field">
-          <label class="mob-label">Your Name</label>
-          <input class="mob-input" data-mfield="fromName" type="text" placeholder="Your Name">
+          <input class="mob-input" data-mfield="businessName" type="text" placeholder="Your name or business">
         </div>
         <div class="mob-two-col" style="margin-bottom:14px">
           <div class="mob-field">
             <label class="mob-label">Email</label>
-            <input class="mob-input" data-mfield="businessEmail" type="email" inputmode="email" placeholder="hello@yourbusiness.com">
+            <input class="mob-input" data-mfield="businessEmail" type="email" inputmode="email" placeholder="Email">
           </div>
           <div class="mob-field">
             <label class="mob-label">Phone</label>
-            <input class="mob-input" data-mfield="businessPhone" type="tel" inputmode="tel" placeholder="+44 7700 000000">
+            <input class="mob-input" data-mfield="businessPhone" type="tel" inputmode="tel" placeholder="Phone">
           </div>
         </div>
         <div class="mob-field">
           <label class="mob-label">Website</label>
-          <input class="mob-input" data-mfield="businessWebsite" type="text" placeholder="www.yourbusiness.com">
+          <input class="mob-input" data-mfield="businessWebsite" type="text" placeholder="Website">
         </div>
         <div class="mob-field">
-          <label class="mob-label">Address Line 1</label>
-          <input class="mob-input" data-mfield="fromAddr1" type="text" placeholder="123 Your Street">
-        </div>
-        <div class="mob-two-col" style="margin-bottom:14px">
-          <div class="mob-field">
-            <label class="mob-label">City</label>
-            <input class="mob-input" data-mfield="fromAddr2" type="text" placeholder="Your City">
-          </div>
-          <div class="mob-field">
-            <label class="mob-label">Postcode</label>
-            <input class="mob-input" data-mfield="fromPostcode" type="text" placeholder="AB1 2CD">
-          </div>
-        </div>
-        <div class="mob-field">
-          <label class="mob-label">Country</label>
-          <input class="mob-input" data-mfield="fromCountry" type="text" placeholder="United Kingdom">
+          <label class="mob-label">From Address</label>
+          <textarea class="mob-input" data-mfield="fromAddress" placeholder="Your name&#10;Your address&#10;City&#10;Postcode"></textarea>
         </div>
       </div>
     </div>
 
     <!-- 2 · Client Details -->
-    <div class="mob-section" id="mob-sec-1">
+    <div class="mob-section open" id="mob-sec-1">
       <div class="mob-section-header" onclick="toggleMobSection(1)">
         <span class="mob-section-title">Client Details</span>
         <span class="mob-section-check" id="mob-chk-1">&#10003;</span>
@@ -1197,32 +1230,14 @@
       </div>
       <div class="mob-section-body">
         <div class="mob-field">
-          <label class="mob-label">Company Name</label>
-          <input class="mob-input" data-mfield="toCompany" type="text" placeholder="Client Company Ltd">
-        </div>
-        <div class="mob-field">
-          <label class="mob-label">Contact Name</label>
-          <input class="mob-input" data-mfield="toContact" type="text" placeholder="Contact Name">
-        </div>
-        <div class="mob-field">
-          <label class="mob-label">Address Line 1</label>
-          <input class="mob-input" data-mfield="toAddr1" type="text" placeholder="456 Client Street">
-        </div>
-        <div class="mob-two-col" style="margin-bottom:0">
-          <div class="mob-field">
-            <label class="mob-label">City</label>
-            <input class="mob-input" data-mfield="toAddr2" type="text" placeholder="Client City">
-          </div>
-          <div class="mob-field">
-            <label class="mob-label">Postcode</label>
-            <input class="mob-input" data-mfield="toPostcode" type="text" placeholder="EF3 4GH">
-          </div>
+          <label class="mob-label">Bill To</label>
+          <textarea class="mob-input" data-mfield="toAddress" placeholder="Client name&#10;Their address&#10;City&#10;Postcode"></textarea>
         </div>
       </div>
     </div>
 
     <!-- 3 · Invoice Details -->
-    <div class="mob-section" id="mob-sec-2">
+    <div class="mob-section open" id="mob-sec-2">
       <div class="mob-section-header" onclick="toggleMobSection(2)">
         <span class="mob-section-title">Invoice Details</span>
         <span class="mob-section-check" id="mob-chk-2">&#10003;</span>
@@ -1260,13 +1275,13 @@
         </div>
         <div class="mob-field" id="mobVatNumField" style="display:none; margin-top:10px">
           <label class="mob-label">VAT Number</label>
-          <input class="mob-input" data-mfield="vatNum" type="text" placeholder="GB000000000">
+          <input class="mob-input" data-mfield="vatNum" type="text" placeholder="VAT number">
         </div>
       </div>
     </div>
 
     <!-- 4 · Line Items -->
-    <div class="mob-section" id="mob-sec-3">
+    <div class="mob-section open" id="mob-sec-3">
       <div class="mob-section-header" onclick="toggleMobSection(3)">
         <span class="mob-section-title">Line Items</span>
         <span class="mob-section-check" id="mob-chk-3">&#10003;</span>
@@ -1293,7 +1308,7 @@
     </div>
 
     <!-- 5 · Expenses -->
-    <div class="mob-section" id="mob-sec-4">
+    <div class="mob-section open" id="mob-sec-4">
       <div class="mob-section-header" onclick="toggleMobSection(4)">
         <span class="mob-section-title">Expenses</span>
         <span class="mob-section-check" id="mob-chk-4">&#10003;</span>
@@ -1306,7 +1321,7 @@
     </div>
 
     <!-- 6 · Payment Details -->
-    <div class="mob-section" id="mob-sec-5">
+    <div class="mob-section open" id="mob-sec-5">
       <div class="mob-section-header" onclick="toggleMobSection(5)">
         <span class="mob-section-title">Payment Details</span>
         <span class="mob-section-check" id="mob-chk-5">&#10003;</span>
@@ -1316,11 +1331,11 @@
         <div class="mob-two-col" style="margin-bottom:14px">
           <div class="mob-field">
             <label class="mob-label">Bank</label>
-            <input class="mob-input" data-mfield="bankName" type="text" placeholder="Your Bank">
+            <input class="mob-input" data-mfield="bankName" type="text" placeholder="Bank">
           </div>
           <div class="mob-field">
             <label class="mob-label">Account Name</label>
-            <input class="mob-input" data-mfield="accountName" type="text" placeholder="Your Name">
+            <input class="mob-input" data-mfield="accountName" type="text" placeholder="Account name">
           </div>
         </div>
         <div class="mob-two-col" style="margin-bottom:14px">
@@ -1335,13 +1350,13 @@
         </div>
         <div class="mob-field">
           <label class="mob-label">Reference</label>
-          <input class="mob-input" data-mfield="payRef" type="text" placeholder="INV-001">
+          <input class="mob-input" data-mfield="payRef" type="text" placeholder="Reference">
         </div>
       </div>
     </div>
 
     <!-- 7 · Notes / Footer -->
-    <div class="mob-section" id="mob-sec-6">
+    <div class="mob-section open" id="mob-sec-6">
       <div class="mob-section-header" onclick="toggleMobSection(6)">
         <span class="mob-section-title">Notes / Footer</span>
         <span class="mob-section-check" id="mob-chk-6">&#10003;</span>
@@ -1350,7 +1365,7 @@
       <div class="mob-section-body">
         <div class="mob-field">
           <label class="mob-label">Notes</label>
-          <textarea class="mob-input" data-mfield="notes" placeholder="Thank you for your business. Payment due within 30 days."></textarea>
+          <textarea class="mob-input" data-mfield="notes" placeholder="Payment terms or notes"></textarea>
         </div>
       </div>
     </div>
@@ -1415,10 +1430,10 @@
         </div>
       </div>
       <div class="business-block">
-        <span class="editable business-name-field"   id="f-businessName"    contenteditable="true" data-field="businessName">Your Business Name</span>
-        <span class="editable business-detail-field" id="f-businessEmail"   contenteditable="true" data-field="businessEmail">hello@yourbusiness.com</span>
-        <span class="editable business-detail-field" id="f-businessPhone"   contenteditable="true" data-field="businessPhone">+44 7700 000000</span>
-        <span class="editable business-detail-field" id="f-businessWebsite" contenteditable="true" data-field="businessWebsite">www.yourbusiness.com</span>
+        <span class="editable business-name-field"   id="f-businessName"    contenteditable="true" data-field="businessName"    data-placeholder="Your name or business"></span>
+        <span class="editable business-detail-field" id="f-businessEmail"   contenteditable="true" data-field="businessEmail"   data-placeholder="Email"></span>
+        <span class="editable business-detail-field" id="f-businessPhone"   contenteditable="true" data-field="businessPhone"   data-placeholder="Phone"></span>
+        <span class="editable business-detail-field" id="f-businessWebsite" contenteditable="true" data-field="businessWebsite" data-placeholder="Website"></span>
       </div>
     </div>
 
@@ -1428,21 +1443,15 @@
       <!-- From -->
       <div class="address-block">
         <h3>From</h3>
-        <span class="editable block-field" id="f-fromName"     contenteditable="true" data-field="fromName">Your Name</span>
-        <span class="editable block-field" id="f-fromAddr1"    contenteditable="true" data-field="fromAddr1">123 Your Street</span>
-        <span class="editable block-field" id="f-fromAddr2"    contenteditable="true" data-field="fromAddr2">Your City</span>
-        <span class="editable block-field" id="f-fromPostcode" contenteditable="true" data-field="fromPostcode">AB1 2CD</span>
-        <span class="editable block-field" id="f-fromCountry"  contenteditable="true" data-field="fromCountry">United Kingdom</span>
+        <textarea id="f-fromAddress" class="address-textarea" data-field="fromAddress"
+          placeholder="Your name&#10;Your address&#10;City&#10;Postcode" rows="4"></textarea>
       </div>
 
       <!-- Bill To -->
       <div class="address-block">
         <h3>Bill To</h3>
-        <span class="editable block-field" id="f-toCompany"  contenteditable="true" data-field="toCompany">Client Company Ltd</span>
-        <span class="editable block-field" id="f-toContact"  contenteditable="true" data-field="toContact">Contact Name</span>
-        <span class="editable block-field" id="f-toAddr1"    contenteditable="true" data-field="toAddr1">456 Client Street</span>
-        <span class="editable block-field" id="f-toAddr2"    contenteditable="true" data-field="toAddr2">Client City</span>
-        <span class="editable block-field" id="f-toPostcode" contenteditable="true" data-field="toPostcode">EF3 4GH</span>
+        <textarea id="f-toAddress" class="address-textarea" data-field="toAddress"
+          placeholder="Client name&#10;Their address&#10;City&#10;Postcode" rows="4"></textarea>
       </div>
 
       <!-- Invoice details -->
@@ -1471,7 +1480,7 @@
         </div>
         <div class="meta-row" id="vatNumRow" style="display:none">
           <span class="meta-label">VAT No.</span>
-          <span class="editable" id="f-vatNum" contenteditable="true" data-field="vatNum">GB000000000</span>
+          <span class="editable" id="f-vatNum" contenteditable="true" data-field="vatNum" data-placeholder="VAT number"></span>
         </div>
       </div>
     </div>
@@ -1528,27 +1537,27 @@
       <div class="payment-grid">
         <div class="payment-field">
           <span class="payment-field-label">Bank</span>
-          <span class="editable" id="f-bankName" contenteditable="true" data-field="bankName">Your Bank</span>
+          <span class="editable" id="f-bankName" contenteditable="true" data-field="bankName" data-placeholder="Bank"></span>
         </div>
         <div class="payment-field">
           <span class="payment-field-label">Account Name</span>
-          <span class="editable" id="f-accountName" contenteditable="true" data-field="accountName">Your Name</span>
+          <span class="editable" id="f-accountName" contenteditable="true" data-field="accountName" data-placeholder="Account name"></span>
         </div>
         <div class="payment-field">
           <span class="payment-field-label">Sort Code</span>
-          <span class="editable" id="f-sortCode" contenteditable="true" data-field="sortCode">00-00-00</span>
+          <span class="editable" id="f-sortCode" contenteditable="true" data-field="sortCode" data-placeholder="00-00-00"></span>
         </div>
         <div class="payment-field">
           <span class="payment-field-label">Account No.</span>
-          <span class="editable" id="f-accountNum" contenteditable="true" data-field="accountNum">00000000</span>
+          <span class="editable" id="f-accountNum" contenteditable="true" data-field="accountNum" data-placeholder="00000000"></span>
         </div>
         <div class="payment-field">
           <span class="payment-field-label">Reference</span>
-          <span class="editable" id="f-payRef" contenteditable="true" data-field="payRef">INV-001</span>
+          <span class="editable" id="f-payRef" contenteditable="true" data-field="payRef" data-placeholder="Reference"></span>
         </div>
         <div class="payment-field payment-notes">
           <span class="payment-field-label">Notes</span>
-          <span class="editable" id="f-notes" contenteditable="true" data-field="notes">Thank you for your business. Payment due within 30 days.</span>
+          <span class="editable" id="f-notes" contenteditable="true" data-field="notes" data-placeholder="Payment terms or notes"></span>
         </div>
       </div>
     </div>
@@ -1596,7 +1605,7 @@
             <th>Paid</th>
             <th>Date Paid</th>
             <th>Expenses</th>
-            <th>Tax (20%)</th>
+            <th><div class="tracker-tax-rate-wrap">Tax&nbsp;(<input type="number" id="taxRateInput" class="tracker-tax-rate-input" value="20" min="0" max="100" step="0.1" title="Global tax rate %">%)</div></th>
             <th>Tax Aside</th>
             <th>Notes</th>
             <th></th>
@@ -2050,6 +2059,16 @@ document.addEventListener('DOMContentLoaded', () => {
       closeLogoPopover();
     }
   });
+
+  // Tax rate input
+  const taxRateInput = document.getElementById('taxRateInput');
+  if (taxRateInput) {
+    taxRateInput.addEventListener('input', () => {
+      taxRate = parseFloat(taxRateInput.value) || 0;
+      try { localStorage.setItem('taxRate', taxRate); } catch(e) {}
+      recalcTrackerTax();
+    });
+  }
 });
 
 // ══════════════════════════════════════════════
@@ -2097,7 +2116,7 @@ function addLineItem(data) {
 
   tr.innerHTML = `
     <td class="col-desc">
-      <span class="editable" contenteditable="true" data-col="desc">${esc(data.desc || '')}</span>
+      <span class="editable" contenteditable="true" data-col="desc" data-placeholder="Description">${esc(data.desc || '')}</span>
     </td>
     <td class="col-qty">
       <span class="editable" contenteditable="true" data-col="qty">${esc(data.qty !== undefined ? data.qty : '1')}</span>
@@ -2192,13 +2211,9 @@ function newInvoice() {
   const num  = parseInt(cur.replace(/\D/g, ''), 10) || 0;
   const next = String(num + 1).padStart(3, '0');
 
-  // Clear client fields
-  ['f-toCompany','f-toContact','f-toAddr1','f-toAddr2','f-toPostcode'].forEach(id => {
-    document.getElementById(id).textContent = {
-      'f-toCompany':'Client Company Ltd','f-toContact':'Contact Name',
-      'f-toAddr1':'456 Client Street','f-toAddr2':'Client City','f-toPostcode':'EF3 4GH'
-    }[id];
-  });
+  // Clear client address (placeholder hint shows via HTML placeholder attribute)
+  const toAddrEl = document.getElementById('f-toAddress');
+  if (toAddrEl) toAddrEl.value = '';
 
   // Update invoice fields
   document.getElementById('f-invoiceNum').textContent  = next;
@@ -2225,7 +2240,16 @@ function newInvoice() {
 function gatherInvoiceData() {
   const fields = {};
   document.querySelectorAll('[data-field]').forEach(el => {
-    fields[el.dataset.field] = el.textContent.trim();
+    let val;
+    if (el.tagName === 'TEXTAREA') {
+      val = el.value;
+    } else {
+      val = el.textContent.trim();
+      // Never save CSS placeholder text as a real value
+      const ph = el.getAttribute('data-placeholder');
+      if (ph && val === ph) val = '';
+    }
+    fields[el.dataset.field] = val;
   });
 
   const items = [];
@@ -2255,7 +2279,12 @@ function saveTracker() {
   document.querySelectorAll('#trackerBody tr[data-trid]').forEach(tr => {
     const row = { id: tr.dataset.trid };
     tr.querySelectorAll('[data-tcol]').forEach(el => {
-      row[el.dataset.tcol] = el.textContent.trim();
+      if (el.type === 'checkbox') {
+        row[el.dataset.tcol] = el.checked;
+      } else {
+        row[el.dataset.tcol] = el.textContent.trim();
+        if (el.dataset.manualTax === 'true') row._manualTax = true;
+      }
     });
     rows.push(row);
   });
@@ -2280,6 +2309,16 @@ function loadAll() {
     if (raw) {
       const data = JSON.parse(raw);
       restoreInvoice(data);
+    }
+  } catch(e) {}
+
+  // Tax rate
+  try {
+    const savedRate = localStorage.getItem('taxRate');
+    if (savedRate !== null) {
+      taxRate = parseFloat(savedRate) || 20;
+      const rateInput = document.getElementById('taxRateInput');
+      if (rateInput) rateInput.value = taxRate;
     }
   } catch(e) {}
 
@@ -2326,7 +2365,12 @@ function restoreInvoice(data) {
   if (data.fields) {
     Object.entries(data.fields).forEach(([k, v]) => {
       const el = document.querySelector(`[data-field="${k}"]`);
-      if (el) el.textContent = v;
+      if (!el) return;
+      if (el.tagName === 'TEXTAREA') {
+        el.value = v || '';
+      } else {
+        el.textContent = v || '';
+      }
     });
   }
 
@@ -2352,35 +2396,95 @@ function restoreInvoice(data) {
 // ══════════════════════════════════════════════
 // Tracker
 // ══════════════════════════════════════════════
+function applyTrackerRowTint(tr) {
+  const paidCb    = tr.querySelector('.tracker-cb[data-tcol="paid"]');
+  const asideCb   = tr.querySelector('.tracker-cb[data-tcol="taxAside"]');
+  const isPaid    = paidCb  && paidCb.checked;
+  const isAside   = asideCb && asideCb.checked;
+  tr.classList.toggle('tr-paid',     isPaid);
+  tr.classList.toggle('tr-taxaside', !isPaid && isAside);
+}
+
 function addTrackerRow(data) {
   data = data || {};
   const id = data.id || ('t' + (++trackerRowId));
   const tr = document.createElement('tr');
   tr.dataset.trid = id;
 
-  const cols = ['invoiceNo','date','client','desc','amount','paid','datePaid','expenses','tax','taxAside','notes'];
-  let cells = '';
-  cols.forEach(col => {
-    cells += `<td><span class="editable" contenteditable="true" data-tcol="${col}">${esc(data[col] || '')}</span></td>`;
+  // Column order: invoiceNo, date, client, desc, amount, [PAID CB], datePaid, expenses, tax, [TAXASIDE CB], notes
+  const orderedCols = ['invoiceNo','date','client','desc','amount','__paid__','datePaid','expenses','tax','__taxaside__','notes'];
+  tr.innerHTML = '';
+  orderedCols.forEach(col => {
+    const td = document.createElement('td');
+    if (col === '__paid__' || col === '__taxaside__') {
+      const realCol = col === '__paid__' ? 'paid' : 'taxAside';
+      td.className = 'tracker-cb-td';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.className = 'tracker-cb';
+      cb.dataset.tcol = realCol;
+      cb.checked = !!(data[realCol] === true || data[realCol] === 'true' || data[realCol] === 1);
+      cb.addEventListener('change', () => { applyTrackerRowTint(tr); saveTracker(); });
+      td.appendChild(cb);
+    } else {
+      let val = data[col] || '';
+      if (col === 'tax' && !val && data.amount) {
+        val = (parseNum(data.amount) * taxRate / 100).toFixed(2);
+      }
+      const span = document.createElement('span');
+      span.className = 'editable';
+      span.contentEditable = 'true';
+      span.dataset.tcol = col;
+      span.textContent = val;
+      td.appendChild(span);
+      span.addEventListener('input', () => { updateTrackerFooter(); saveTracker(); });
+      // When amount changes, auto-recalc tax if tax cell is unchanged from auto-value
+      if (col === 'amount') {
+        span.addEventListener('input', () => {
+          const taxSpan = tr.querySelector('[data-tcol="tax"]');
+          if (taxSpan && taxSpan.dataset.manualTax !== 'true') {
+            const newTax = (parseNum(span.textContent) * taxRate / 100).toFixed(2);
+            taxSpan.textContent = newTax;
+            updateTrackerFooter();
+            saveTracker();
+          }
+        });
+      }
+      if (col === 'tax') {
+        if (data._manualTax) span.dataset.manualTax = 'true';
+        span.addEventListener('input', () => { span.dataset.manualTax = 'true'; });
+      }
+    }
+    tr.appendChild(td);
   });
-  tr.innerHTML = cells;
 
-  tr.querySelectorAll('[data-tcol]').forEach(el => {
-    el.addEventListener('input', () => { updateTrackerFooter(); saveTracker(); });
-  });
+  applyTrackerRowTint(tr);
 
-  const td = document.createElement('td');
-  td.className = 'tracker-del-td';
+  const delTd = document.createElement('td');
+  delTd.className = 'tracker-del-td';
   const btn = document.createElement('button');
   btn.textContent = '×';
   btn.className = 'tracker-del-btn';
   const accentHex = localStorage.getItem('inv_accent_color') || accentColor || '#2a7c7c';
   btn.style.background = accentHex;
   btn.onclick = function() { showDeleteConfirm(tr); };
-  td.appendChild(btn);
-  tr.appendChild(td);
+  delTd.appendChild(btn);
+  tr.appendChild(delTd);
 
   document.getElementById('trackerBody').appendChild(tr);
+}
+
+function recalcTrackerTax() {
+  document.querySelectorAll('#trackerBody tr[data-trid]').forEach(tr => {
+    const taxSpan = tr.querySelector('[data-tcol="tax"]');
+    if (taxSpan && taxSpan.dataset.manualTax !== 'true') {
+      const amtSpan = tr.querySelector('[data-tcol="amount"]');
+      const amt = amtSpan ? parseNum(amtSpan.textContent) : 0;
+      taxSpan.textContent = (amt * taxRate / 100).toFixed(2);
+    }
+  });
+  updateTrackerFooter();
+  saveTracker();
 }
 
 function deleteTrackerRow(btn) {
@@ -2392,6 +2496,7 @@ function deleteTrackerRow(btn) {
 
 let _deleteTargetRow = null;
 let _ocrWorker       = null;   // reused Tesseract worker across files
+let taxRate          = 20;     // global tracker tax rate (%)
 
 function showDeleteConfirm(tr) {
   _deleteTargetRow = tr;
@@ -2504,6 +2609,7 @@ async function handlePDFFiles(files) {
           }
 
           rawFull = ocrPages.join('\n\n--- PAGE BREAK ---\n\n');
+          lines   = rawFull.split('\n').map(l => l.trim()).filter(Boolean);
           usedOCR = true;
           console.log('OCR result:', rawFull);
         } catch (ocrErr) {
@@ -2541,12 +2647,16 @@ async function handlePDFFiles(files) {
 
       // Choose parser and record which regex matched each field
       let parsed, pathUsed, matchLog;
-      if (isSpaced) {
-        pathUsed  = usedOCR ? 'OCR fallback → concatenated-text path' : 'concatenated-text path';
+      if (usedOCR) {
+        pathUsed = 'OCR fallback';
+        matchLog = {};
+        parsed   = parseOCRText(lines, rawFull, matchLog);
+      } else if (isSpaced) {
+        pathUsed  = 'concatenated-text path';
         matchLog  = {};
         parsed    = parseConcatenatedPDF(displayText, matchLog);
       } else {
-        pathUsed  = usedOCR ? 'OCR fallback → normal path' : 'normal path';
+        pathUsed  = 'normal path';
         matchLog  = null;
         parsed    = parsePDFText(lines, file.name);
       }
@@ -2622,7 +2732,7 @@ function parseConcatenatedPDF(text, matchLog) {
   if (allAmtMatches.length > 0) {
     const lastAmt = allAmtMatches[allAmtMatches.length - 1][1];
     result.amount = lastAmt;
-    result.tax    = (parseFloat(lastAmt) * 0.20).toFixed(2);
+    result.tax    = (parseFloat(lastAmt) * taxRate / 100).toFixed(2);
     if (matchLog) matchLog.amount = 'last £ before Allinvoices';
   }
 
@@ -2781,6 +2891,99 @@ function closeDebugModal() {
 }
 
 // ── Robust line-by-line parser ───────────────────────────────
+// ── OCR-specific parser ──────────────────────────────────────
+// Used only when usedOCR=true. The OCR text is clean with real line breaks.
+function parseOCRText(lines, fullText, matchLog) {
+  const result = {};
+  const log    = k => s => { if (matchLog) matchLog[k] = s; };
+
+  // 1. INVOICE NUMBER — clean "INV-XXX" token anywhere
+  const invM = fullText.match(/INV-\d+/i);
+  if (invM) {
+    result.invoiceNo = invM[0].toUpperCase();
+    log('invoiceNo')('INV-\\d+ direct match');
+  }
+
+  // 2. DATE — first d/m/yyyy or dd/mm/yyyy in the whole text
+  //    "INVOICE 16/6/2025" on one line means we can't filter by label; just take first 4-digit-year date.
+  const dateM = fullText.match(/\b(\d{1,2}\/\d{1,2}\/\d{4})\b/);
+  if (dateM) {
+    result.date = dateM[1];
+    log('date')('first d/m/yyyy');
+  }
+
+  // 3. CLIENT NAME — first clean company line after the INV-XXX line.
+  //    Skip address-like lines (contain Road/Street/London/England/City) and VAT lines.
+  const ADDRESS_LINE = /\b(Road|Street|Lane|Avenue|Avenue|Close|Drive|Way|Court|City|London|England|UK|E\d|EC\d|N\d|NW\d|SE\d|SW\d|W\d|WC\d)\b/i;
+  const VAT_LINE     = /VAT|Tax\s*Reg|Registered/i;
+  const SKIP_LINE    = /^INVOICE\b|^Date\b|^INV-/i;
+  let invLineIdx = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (/INV-\d+/i.test(lines[i])) { invLineIdx = i; break; }
+  }
+  if (invLineIdx !== -1) {
+    for (let i = invLineIdx + 1; i < lines.length; i++) {
+      const l = lines[i].trim();
+      if (!l) continue;
+      if (ADDRESS_LINE.test(l) || VAT_LINE.test(l) || SKIP_LINE.test(l)) continue;
+      if (/^[\d\s\-\/£.,]+$/.test(l)) continue; // pure numbers/symbols
+      // Must look like a company name: has letters, length > 3
+      if (l.length > 3 && /[A-Za-z]{2}/.test(l)) {
+        result.client = l.slice(0, 60);
+        log('client')('first clean line after INV-XXX');
+        break;
+      }
+    }
+  }
+
+  // 4. DESCRIPTION — line matching /^(.+?)\s+£[\d.]+$/ that is not a total/subtotal line.
+  //    Take capture group 1 (text before the trailing £amount).
+  const TOTAL_LINE = /subtotal|total|vat|tax/i;
+  for (const l of lines) {
+    const m = l.trim().match(/^(.+?)\s+£([\d,]+(?:\.\d{1,2})?)$/);
+    if (m && !TOTAL_LINE.test(m[1])) {
+      result.desc = m[1].trim();
+      log('desc')('line-item pattern: text before £amount');
+      break;
+    }
+  }
+
+  // 5. AMOUNT — TOTAL GBP line first; fallback to last £ before "Sort Code".
+  const TOTAL_GBP_RE = /TOTAL\s*GBP\s*£?([\d,]+(?:\.\d{1,2})?)/i;
+  let foundAmt = null;
+  for (const l of lines) {
+    const m = l.match(TOTAL_GBP_RE);
+    if (m) { foundAmt = m[1].replace(/,/g, ''); log('amount')('TOTAL GBP line'); break; }
+  }
+  if (!foundAmt) {
+    // Fallback: last £ amount before "Sort Code"
+    const sortPos = fullText.search(/Sort\s*Code/i);
+    const searchZone = sortPos > 0 ? fullText.slice(0, sortPos) : fullText;
+    const allAmts = [...searchZone.matchAll(/£([\d,]+(?:\.\d{1,2})?)/g)];
+    if (allAmts.length > 0) {
+      foundAmt = allAmts[allAmts.length - 1][1].replace(/,/g, '');
+      log('amount')('last £ before Sort Code (fallback)');
+    }
+  }
+  if (foundAmt) {
+    result.amount = foundAmt;
+    result.tax    = (parseFloat(foundAmt) * taxRate / 100).toFixed(2);
+    if (matchLog && !matchLog.amount) log('amount')('unknown');
+  }
+
+  // 6. TAX — explicit VAT line or 20% of amount
+  const vatLineM = fullText.match(/TOTAL\s*VAT\s*(?:20%\s*)?£?([\d,]+(?:\.\d{1,2})?)/i);
+  if (vatLineM) {
+    result.tax = vatLineM[1].replace(/,/g, '');
+    log('tax')('TOTAL VAT line');
+  } else if (result.amount) {
+    result.tax = (parseFloat(result.amount) * taxRate / 100).toFixed(2);
+    log('tax')('20% of amount');
+  }
+
+  return result;
+}
+
 function parsePDFText(lines, filename) {
   const result = {};
   const failed = [];
@@ -2856,7 +3059,7 @@ function parsePDFText(lines, filename) {
   }
   if (lastAmt) {
     result.amount = lastAmt;
-    result.tax    = (parseFloat(lastAmt) * 0.20).toFixed(2);
+    result.tax    = (parseFloat(lastAmt) * taxRate / 100).toFixed(2);
   }
   if (!found) failed.push('amount');
 
@@ -3024,14 +3227,16 @@ function downloadPDF() {
   doc.text('BILL TO',  M + COL,   y);
   doc.text('INVOICE DETAILS', M + COL * 2, y);
 
-  const fromIds = ['f-fromName','f-fromAddr1','f-fromAddr2','f-fromPostcode','f-fromCountry'];
-  const toIds   = ['f-toCompany','f-toContact','f-toAddr1','f-toAddr2','f-toPostcode'];
+  const fromAddrEl = document.getElementById('f-fromAddress');
+  const toAddrEl   = document.getElementById('f-toAddress');
+  const fromLines  = fromAddrEl ? fromAddrEl.value.split('\n').map(l => l.trim()).filter(Boolean) : [];
+  const toLines    = toAddrEl   ? toAddrEl.value.split('\n').map(l => l.trim()).filter(Boolean)   : [];
 
   let yFrom = y + 5, yTo = y + 5, yMeta = y + 5;
 
   sf(8.5, 'normal', TEXT);
-  fromIds.forEach(id => { const v = fv(id); if (v) { doc.text(v, M, yFrom); yFrom += 4.8; } });
-  toIds.forEach(id   => { const v = fv(id); if (v) { doc.text(v, M + COL, yTo); yTo   += 4.8; } });
+  fromLines.forEach(line => { doc.text(line, M,       yFrom); yFrom += 4.8; });
+  toLines.forEach(  line => { doc.text(line, M + COL, yTo);   yTo   += 4.8; });
 
   const metaX  = M + COL * 2;
   const metaKV = [
@@ -3191,7 +3396,8 @@ function downloadPDF() {
   doc.save(filename);
 
   // ── Append to tracker ───────────────────
-  const client   = fv('f-toCompany');
+  const toAddrEl2 = document.getElementById('f-toAddress');
+  const client    = toAddrEl2 ? (toAddrEl2.value.trim().split('\n')[0] || '') : '';
   const firstDesc = document.querySelector('#lineBody tr [data-col="desc"]')?.textContent.trim() || '';
 
   addTrackerRow({
@@ -3200,7 +3406,6 @@ function downloadPDF() {
     client,
     desc:      firstDesc,
     amount:    total.toFixed(2),
-    tax:       (total * 0.20).toFixed(2),
   });
   updateTrackerFooter();
   saveTracker();
@@ -3209,13 +3414,18 @@ function downloadPDF() {
 // ══════════════════════════════════════════════
 // Tracker exports
 // ══════════════════════════════════════════════
-const TRACKER_HEADERS = ['Invoice #','Date Issued','Client','Description','Amount','Paid','Date Paid','Expenses','Tax (20%)','Tax Aside','Notes'];
+const TRACKER_HEADERS = ['Invoice #','Date Issued','Client','Description','Amount','Paid','Date Paid','Expenses','Tax (%)','Tax Aside','Notes'];
 const TRACKER_COLS    = ['invoiceNo','date','client','desc','amount','paid','datePaid','expenses','tax','taxAside','notes'];
 
 function gatherTrackerData() {
   const rows = [];
   document.querySelectorAll('#trackerBody tr[data-trid]').forEach(tr => {
-    rows.push(TRACKER_COLS.map(col => tr.querySelector(`[data-tcol="${col}"]`).textContent.trim()));
+    rows.push(TRACKER_COLS.map(col => {
+      const el = tr.querySelector(`[data-tcol="${col}"]`);
+      if (!el) return '';
+      if (el.type === 'checkbox') return el.checked ? 'Yes' : 'No';
+      return el.textContent.trim();
+    }));
   });
   return rows;
 }
@@ -3306,8 +3516,8 @@ function exportTrackerPDF() {
 
 // Which fields indicate each section is "done" (for the green ✓)
 const MOB_SECTION_FIELDS = [
-  ['businessName', 'fromName', 'businessEmail'],   // 0 Your Details
-  ['toCompany', 'toContact'],                       // 1 Client Details
+  ['businessName', 'fromAddress', 'businessEmail'],  // 0 Your Details
+  ['toAddress'],                                     // 1 Client Details
   ['invoiceNum', 'invoiceDate'],                    // 2 Invoice Details
   null,                                             // 3 Line Items  (checked by row count)
   null,                                             // 4 Expenses    (checked by image count)
@@ -3320,10 +3530,13 @@ function toggleMobSection(idx) {
   if (sec) sec.classList.toggle('open');
 }
 
-// Copy one mobile input value → hidden desktop span → save
+// Copy one mobile input value → desktop field → save
 function syncMobileField(field, value) {
   const span = document.querySelector('[data-field="' + field + '"]');
-  if (span) span.textContent = value;
+  if (span) {
+    if (span.tagName === 'TEXTAREA') span.value = value;
+    else span.textContent = value;
+  }
   // Invoice date triggers due-date auto-calc; mirror result back to mobile input
   if (field === 'invoiceDate') {
     updateDueDateFrom(value);
@@ -3335,11 +3548,11 @@ function syncMobileField(field, value) {
   updateMobCheckmarks();
 }
 
-// Copy all desktop span values → mobile inputs (called after loadAll / newInvoice)
+// Copy all desktop field values → mobile inputs (called after loadAll / newInvoice)
 function syncMobileFromDesktop() {
   document.querySelectorAll('[data-mfield]').forEach(inp => {
     const span = document.querySelector('[data-field="' + inp.dataset.mfield + '"]');
-    if (span) inp.value = span.textContent.trim();
+    if (span) inp.value = span.tagName === 'TEXTAREA' ? span.value : span.textContent.trim();
   });
   // VAT state
   const mvat = document.getElementById('mobileVatToggle');
