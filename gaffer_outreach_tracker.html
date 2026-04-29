@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gaffer Outreach Tracker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; background: #0f0f0f; color: #e8e8e8; min-height: 100vh; padding: 2rem; }
+  h1 { font-size: 22px; font-weight: 500; margin-bottom: 0.25rem; letter-spacing: -0.02em; }
+  .subtitle { font-size: 13px; color: #666; margin-bottom: 2rem; }
+
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid #222; margin-bottom: 2rem; }
+  .tab { padding: 9px 18px; font-size: 13px; cursor: pointer; color: #666; border-bottom: 2px solid transparent; margin-bottom: -1px; background: none; border-top: none; border-left: none; border-right: none; font-family: inherit; transition: color 0.15s; }
+  .tab.active { color: #e8e8e8; border-bottom-color: #e8e8e8; }
+  .tab:hover { color: #bbb; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 2rem; }
+  .stat { background: #1a1a1a; border: 1px solid #222; border-radius: 10px; padding: 14px 16px; }
+  .stat-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .stat-val { font-size: 26px; font-weight: 500; color: #e8e8e8; }
+
+  .add-form { display: grid; grid-template-columns: 1.5fr 1fr 1.5fr 1fr auto; gap: 10px; margin-bottom: 1.5rem; align-items: end; }
+  .add-form label { font-size: 11px; color: #555; display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  input, select { font-size: 13px; padding: 8px 11px; border: 1px solid #2a2a2a; border-radius: 8px; background: #1a1a1a; color: #e8e8e8; font-family: inherit; width: 100%; outline: none; }
+  input:focus, select:focus { border-color: #444; }
+  input::placeholder { color: #444; }
+
+  .btn { padding: 8px 16px; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: #e8e8e8; font-size: 13px; cursor: pointer; font-family: inherit; white-space: nowrap; transition: background 0.1s; }
+  .btn:hover { background: #252525; }
+  .btn.primary { background: #e8e8e8; color: #0f0f0f; border-color: #e8e8e8; font-weight: 500; }
+  .btn.primary:hover { background: #ccc; }
+  .btn.danger { color: #c0392b; border-color: transparent; background: none; padding: 5px 8px; font-size: 16px; }
+  .btn.danger:hover { background: rgba(192,57,43,0.1); }
+
+  .filter-row { display: flex; gap: 10px; margin-bottom: 1rem; align-items: center; }
+  .filter-row select { width: auto; }
+  .filter-count { font-size: 12px; color: #555; margin-left: auto; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; font-size: 11px; font-weight: 500; color: #555; text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 10px; border-bottom: 1px solid #1e1e1e; }
+  td { padding: 10px 10px; border-bottom: 1px solid #1a1a1a; color: #e8e8e8; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #161616; }
+
+  .status-select { font-size: 12px; padding: 4px 8px; width: auto; border: 1px solid #2a2a2a; }
+  .notes-input { font-size: 12px; padding: 5px 8px; width: 100%; border: 1px solid #1e1e1e; background: transparent; }
+  .notes-input:focus { background: #1a1a1a; border-color: #333; }
+
+  .role-tag { font-size: 11px; color: #666; }
+  .via-tag { font-size: 11px; color: #555; }
+  .name-cell { font-weight: 500; font-size: 14px; }
+  .link-cell a { color: #5b9bd5; text-decoration: none; font-size: 12px; }
+  .link-cell a:hover { text-decoration: underline; }
+
+  .empty { text-align: center; padding: 3rem; color: #444; font-size: 14px; }
+
+  /* DM Templates */
+  .dm-card { background: #1a1a1a; border: 1px solid #222; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+  .dm-label { font-size: 11px; font-weight: 500; color: #555; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; }
+  .dm-text { font-size: 14px; line-height: 1.7; color: #ccc; white-space: pre-wrap; }
+  .copy-row { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+  .copied-msg { font-size: 12px; color: #5b9b5b; display: none; }
+
+  /* Sources */
+  .source-row { display: grid; grid-template-columns: 1.2fr 1.2fr 2fr auto; gap: 0; border-bottom: 1px solid #1a1a1a; }
+  .source-row:last-child { border-bottom: none; }
+  .source-cell { padding: 12px 14px; font-size: 13px; }
+  .source-head { background: #161616; border-bottom: 1px solid #222; }
+  .source-head .source-cell { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 14px; }
+  .source-name { font-weight: 500; }
+  .source-desc { color: #666; font-size: 12px; }
+  .source-tip { color: #888; font-size: 12px; line-height: 1.5; }
+  .source-link a { color: #5b9bd5; font-size: 12px; text-decoration: none; }
+  .source-link a:hover { text-decoration: underline; }
+  .sources-table { border: 1px solid #222; border-radius: 10px; overflow: hidden; margin-bottom: 1.5rem; }
+  .tip-box { background: #161616; border: 1px solid #1e1e1e; border-radius: 10px; padding: 1rem 1.25rem; font-size: 13px; color: #888; line-height: 1.7; }
+  .tip-box strong { color: #bbb; }
+</style>
+</head>
+<body>
+
+<h1>Gaffer outreach tracker</h1>
+<p class="subtitle">Build your list, track where you're at, grab a DM template and go.</p>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('contacts')">Contacts</button>
+  <button class="tab" onclick="showTab('dms')">DM templates</button>
+  <button class="tab" onclick="showTab('sources')">Where to find them</button>
+</div>
+
+<!-- CONTACTS -->
+<div class="section active" id="sec-contacts">
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Total</div><div class="stat-val" id="st-total">0</div></div>
+    <div class="stat"><div class="stat-label">To contact</div><div class="stat-val" id="st-todo">0</div></div>
+    <div class="stat"><div class="stat-label">Sent</div><div class="stat-val" id="st-sent">0</div></div>
+    <div class="stat"><div class="stat-label">Replied / booked</div><div class="stat-val" id="st-replied">0</div></div>
+  </div>
+
+  <div class="add-form">
+    <div><label>Name</label><input id="inp-name" placeholder="e.g. Sarah Kim" /></div>
+    <div><label>Role</label>
+      <select id="inp-role">
+        <option>Gaffer</option><option>Best Boy Electric</option><option>Lighting Designer</option>
+        <option>Spark</option><option>DOP</option><option>Prod Coordinator</option>
+        <option>Art Director</option><option>Other</option>
+      </select>
+    </div>
+    <div><label>Contact / link</label><input id="inp-link" placeholder="@handle or URL" /></div>
+    <div><label>Via</label>
+      <select id="inp-via">
+        <option>Instagram</option><option>LinkedIn</option><option>Mandy</option>
+        <option>Production Base</option><option>Crew United</option><option>Referral</option><option>Other</option>
+      </select>
+    </div>
+    <div style="padding-top:20px"><button class="btn primary" onclick="addContact()">+ Add</button></div>
+  </div>
+
+  <div class="filter-row">
+    <select id="filter-status" onchange="renderTable()">
+      <option value="">All statuses</option>
+      <option>To contact</option><option>Sent</option><option>Replied</option>
+      <option>Booked</option><option>No response</option>
+    </select>
+    <select id="filter-role" onchange="renderTable()">
+      <option value="">All roles</option>
+      <option>Gaffer</option><option>Best Boy Electric</option><option>Lighting Designer</option>
+      <option>Spark</option><option>DOP</option><option>Prod Coordinator</option><option>Art Director</option><option>Other</option>
+    </select>
+    <span class="filter-count" id="filter-count"></span>
+  </div>
+
+  <table>
+    <thead><tr>
+      <th>Name</th><th>Role</th><th>Contact</th><th>Via</th><th>Status</th><th>Notes</th><th></th>
+    </tr></thead>
+    <tbody id="table-body"></tbody>
+  </table>
+  <div id="empty-state" class="empty">No contacts yet — add your first one above or browse the Sources tab for where to look.</div>
+</div>
+
+<!-- DM TEMPLATES -->
+<div class="section" id="sec-dms">
+  <div class="dm-card">
+    <div class="dm-label">Instagram DM — punchy intro (film / TV)</div>
+    <div class="dm-text" id="dm1">Hey [Name] — love your work on [recent project / reel]. I'm Iggy, a London-based spark with a background in large-scale film and TV — I've worked across art department, lighting and SFX, mostly on commercial and drama. I'm actively looking for new connections right now. Would love to get on your radar if you ever need crew. No pressure at all — just wanted to reach out properly rather than just follow from afar.</div>
+    <div class="copy-row"><span class="copied-msg" id="c1">Copied ✓</span><button class="btn" onclick="copyDM('dm1','c1')">Copy</button></div>
+  </div>
+  <div class="dm-card">
+    <div class="dm-label">Instagram DM — fashion / photography</div>
+    <div class="dm-text" id="dm2">Hi [Name] — your lighting on [recent shoot / campaign] is seriously beautiful. I'm Iggy, a London-based spark / gaffer crew — I work across film, stills, and commercial. Happy to chat rates, send a CV, whatever works. Just putting myself out there to the people whose work I actually rate.</div>
+    <div class="copy-row"><span class="copied-msg" id="c2">Copied ✓</span><button class="btn" onclick="copyDM('dm2','c2')">Copy</button></div>
+  </div>
+  <div class="dm-card">
+    <div class="dm-label">LinkedIn message — more formal</div>
+    <div class="dm-text" id="dm3">Hi [Name], hope you don't mind a cold message. I'm a London-based lighting tech with a background spanning film, TV, and large-scale live events. I've been following your work and would love to be considered for upcoming projects where you need additional crew. Available for day calls, longer runs, everything in between — happy to send a CV. Thanks for your time.</div>
+    <div class="copy-row"><span class="copied-msg" id="c3">Copied ✓</span><button class="btn" onclick="copyDM('dm3','c3')">Copy</button></div>
+  </div>
+  <div class="dm-card">
+    <div class="dm-label">Cold email subject lines</div>
+    <div class="dm-text" id="dm4">Available spark / gaffer crew — London
+Lighting crew available — your next project
+Iggy Macdonald — sparks / lighting, London based
+Crew availability — [Month Year]</div>
+    <div class="copy-row"><span class="copied-msg" id="c4">Copied ✓</span><button class="btn" onclick="copyDM('dm4','c4')">Copy</button></div>
+  </div>
+</div>
+
+<!-- SOURCES -->
+<div class="section" id="sec-sources">
+  <div class="sources-table">
+    <div class="source-row source-head">
+      <div class="source-cell">Directory</div>
+      <div class="source-cell">Best for</div>
+      <div class="source-cell">How to use it</div>
+      <div class="source-cell">Link</div>
+    </div>
+    <div class="source-row"><div class="source-cell source-name">Mandy.com</div><div class="source-cell source-desc">Film & TV crew, UK-focused</div><div class="source-cell source-tip">Search by role + location. Message directly or note profiles for your tracker.</div><div class="source-cell source-link"><a href="https://www.mandy.com" target="_blank">Open →</a></div></div>
+    <div class="source-row"><div class="source-cell source-name">The Production Base</div><div class="source-cell source-desc">UK film / TV / commercials</div><div class="source-cell source-tip">Free crew search. Solid gaffer and spark listings for London.</div><div class="source-cell source-link"><a href="https://www.theproductionbase.com" target="_blank">Open →</a></div></div>
+    <div class="source-row"><div class="source-cell source-name">Crew United</div><div class="source-cell source-desc">UK + Europe, film & commercial</div><div class="source-cell source-tip">Search "Gaffer" + London. Many profiles have direct contact buttons.</div><div class="source-cell source-link"><a href="https://www.crew-united.com" target="_blank">Open →</a></div></div>
+    <div class="source-row"><div class="source-cell source-name">LinkedIn</div><div class="source-cell source-desc">All sectors, formal outreach</div><div class="source-cell source-tip">Search "Gaffer London" or "Chief Lighting Technician". Filter by 2nd connections for warmer leads.</div><div class="source-cell source-link"><a href="https://www.linkedin.com/search/results/people/?keywords=gaffer%20london" target="_blank">Search →</a></div></div>
+    <div class="source-row"><div class="source-cell source-name">Instagram</div><div class="source-cell source-desc">Fashion, photography, commercials</div><div class="source-cell source-tip">Search #LondonGaffer #UKGaffer #FilmCrew. Look at BTS tags on shoots you admire.</div><div class="source-cell source-link"><a href="https://www.instagram.com/explore/tags/londonGaffer/" target="_blank">Browse →</a></div></div>
+    <div class="source-row"><div class="source-cell source-name">The Book</div><div class="source-cell source-desc">Photography / fashion</div><div class="source-cell source-tip">Photographer directory — look at BTS credits and tagged crew on shoots.</div><div class="source-cell source-link"><a href="https://www.thebook.co.uk" target="_blank">Open →</a></div></div>
+    <div class="source-row"><div class="source-cell source-name">ProductionHub</div><div class="source-cell source-desc">Film, TV, commercial</div><div class="source-cell source-tip">Filter by role + city. More US-heavy but London listings do exist.</div><div class="source-cell source-link"><a href="https://www.productionhub.com" target="_blank">Open →</a></div></div>
+    <div class="source-row"><div class="source-cell source-name">ScreenSkills</div><div class="source-cell source-desc">UK film & TV body</div><div class="source-cell source-tip">Directory + networking events. Worth going to at least one event in person.</div><div class="source-cell source-link"><a href="https://www.screenskills.com" target="_blank">Open →</a></div></div>
+    <div class="source-row"><div class="source-cell source-name">BECTU</div><div class="source-cell source-desc">Union members, UK film</div><div class="source-cell source-tip">Find crew through the BECTU network. Worth joining properly as a spark.</div><div class="source-cell source-link"><a href="https://www.bectu.org.uk" target="_blank">Open →</a></div></div>
+    <div class="source-row"><div class="source-cell source-name">Referrals</div><div class="source-cell source-desc">Fastest route to paid work</div><div class="source-cell source-tip">Every gaffer you've ever worked with — message them now. "Got any mates who need crew?" is a full sentence.</div><div class="source-cell source-link">—</div></div>
+  </div>
+  <div class="tip-box"><strong>Strategy:</strong> Start with Mandy + LinkedIn to build your list fast (structured, easy to copy into the tracker). Use Instagram for fashion/photography gaffers. Aim for 5 new contacts a day — that's 100 in a month, which is a real book. Prioritise anyone you've got even a 1-degree connection to first.</div>
+</div>
+
+<script>
+let contacts = [];
+try { contacts = JSON.parse(localStorage.getItem('gaffer_contacts') || '[]'); } catch(e){}
+
+function save() { try { localStorage.setItem('gaffer_contacts', JSON.stringify(contacts)); } catch(e){} }
+
+function showTab(t) {
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+  const tabs = ['contacts','dms','sources'];
+  document.querySelectorAll('.tab')[tabs.indexOf(t)].classList.add('active');
+  document.getElementById('sec-'+t).classList.add('active');
+}
+
+function addContact() {
+  const name = document.getElementById('inp-name').value.trim();
+  if (!name) { document.getElementById('inp-name').focus(); return; }
+  contacts.unshift({
+    id: Date.now(),
+    name,
+    role: document.getElementById('inp-role').value,
+    link: document.getElementById('inp-link').value.trim(),
+    via: document.getElementById('inp-via').value,
+    status: 'To contact',
+    notes: ''
+  });
+  document.getElementById('inp-name').value = '';
+  document.getElementById('inp-link').value = '';
+  save(); renderTable();
+}
+
+function updateStatus(id, val) {
+  const c = contacts.find(x => x.id === id);
+  if (c) { c.status = val; save(); renderStats(); }
+}
+function updateNotes(id, val) {
+  const c = contacts.find(x => x.id === id);
+  if (c) { c.notes = val; save(); }
+}
+function removeContact(id) {
+  contacts = contacts.filter(x => x.id !== id);
+  save(); renderTable();
+}
+
+function renderStats() {
+  document.getElementById('st-total').textContent = contacts.length;
+  document.getElementById('st-todo').textContent = contacts.filter(c => c.status === 'To contact').length;
+  document.getElementById('st-sent').textContent = contacts.filter(c => c.status === 'Sent').length;
+  document.getElementById('st-replied').textContent = contacts.filter(c => ['Replied','Booked'].includes(c.status)).length;
+}
+
+function renderTable() {
+  const sf = document.getElementById('filter-status').value;
+  const rf = document.getElementById('filter-role').value;
+  const filtered = contacts.filter(c => (!sf || c.status === sf) && (!rf || c.role === rf));
+  document.getElementById('filter-count').textContent = filtered.length + ' of ' + contacts.length + ' contacts';
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = '';
+  document.getElementById('empty-state').style.display = contacts.length === 0 ? 'block' : 'none';
+  filtered.forEach(c => {
+    const tr = document.createElement('tr');
+    const raw = c.link || '';
+    let linkHtml = '<span style="color:#444;font-size:12px">—</span>';
+    if (raw) {
+      if (raw.startsWith('http')) {
+        linkHtml = `<a href="${raw}" target="_blank">${raw.replace(/https?:\/\//,'').substring(0,30)}</a>`;
+      } else {
+        linkHtml = `<span style="font-size:13px;color:#ccc">${raw}</span>`;
+      }
+    }
+    tr.innerHTML = `
+      <td class="name-cell">${c.name}</td>
+      <td class="role-tag">${c.role}</td>
+      <td class="link-cell">${linkHtml}</td>
+      <td class="via-tag">${c.via}</td>
+      <td>
+        <select class="status-select" onchange="updateStatus(${c.id},this.value)">
+          ${['To contact','Sent','Replied','Booked','No response'].map(s=>`<option${s===c.status?' selected':''}>${s}</option>`).join('')}
+        </select>
+      </td>
+      <td><input class="notes-input" placeholder="notes..." value="${(c.notes||'').replace(/"/g,'&quot;')}" onchange="updateNotes(${c.id},this.value)" /></td>
+      <td><button class="btn danger" onclick="removeContact(${c.id})">×</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  renderStats();
+}
+
+function copyDM(id, cid) {
+  const text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const el = document.getElementById(cid);
+    el.style.display = 'inline';
+    setTimeout(() => el.style.display = 'none', 2000);
+  });
+}
+
+document.getElementById('inp-name').addEventListener('keydown', e => { if (e.key === 'Enter') addContact(); });
+renderTable();
+</script>
+</body>
+</html>

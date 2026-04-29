@@ -443,14 +443,16 @@
       text-align: center;
     }
     .logo-zone:hover { border-color: var(--accent); background: var(--accent-light); }
-    .logo-zone.has-logo { border-style: solid; border-color: var(--border); padding: 6px; background: none; }
+    .logo-zone.has-logo { position: relative; border-style: solid; border-color: var(--border); padding: 6px; background: none; }
     .logo-zone.has-logo:hover { border-color: var(--accent); background: var(--accent-light); }
     .logo-zone img { max-height: 80px; max-width: 180px; object-fit: contain; display: block; pointer-events: none; }
     .logo-zone-placeholder { font-size: 0.72rem; color: var(--muted); line-height: 1.5; pointer-events: none; }
     .logo-remove-btn {
-      display: block; margin-top: 5px; font-size: 0.68rem; color: var(--danger);
-      background: none; border: none; cursor: pointer; padding: 0; text-decoration: underline;
-      pointer-events: auto;
+      position: absolute; top: 4px; right: 4px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: rgba(0,0,0,0.5); color: #fff; font-size: 12px;
+      line-height: 20px; text-align: center; cursor: pointer;
+      border: none; padding: 0; pointer-events: auto;
     }
     #logoInput { display: none; }
 
@@ -573,6 +575,65 @@
       font-weight: bold;
     }
 
+    /* ── Colour picker bar ── */
+    .colour-picker-bar {
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+      padding: 10px 14px; background: #fff; border-radius: var(--radius);
+      box-shadow: var(--shadow); margin-bottom: 14px;
+    }
+    .colour-picker-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .colour-picker-sep { width: 1px; height: 28px; background: var(--border); flex-shrink: 0; }
+    .colour-picker-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+    .bg-toggle { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .bg-toggle-btn { background: #fff; border: none; padding: 5px 14px; font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: var(--font); color: var(--muted); transition: background .15s, color .15s; }
+    .bg-toggle-btn:first-child { border-right: 1px solid var(--border); }
+    .bg-toggle-btn.active { background: var(--accent); color: #fff; }
+    .colour-swatches { display: flex; gap: 6px; flex-wrap: wrap; }
+    .colour-swatch {
+      width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
+      border: 2px solid transparent; transition: transform .15s, border-color .15s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.22); flex-shrink: 0;
+    }
+    .colour-swatch:hover { transform: scale(1.2); }
+    .colour-swatch.active { border-color: #fff; outline: 2px solid var(--accent); transform: scale(1.2); }
+    .colour-custom-wrap { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--muted); cursor: pointer; }
+    .colour-custom-wrap input[type="color"] { width: 24px; height: 24px; border: 1px solid var(--border); border-radius: 50%; cursor: pointer; padding: 0; background: none; }
+
+    /* ── Invoice title editable ── */
+    .invoice-title { position: relative; }
+    #f-invoiceTitle { color: var(--accent); letter-spacing: 3px; font-size: 2.4rem; font-weight: 900; line-height: 1; }
+
+    /* ── Logo popover ── */
+    .logo-popover {
+      position: absolute; top: calc(100% + 6px); left: 0; z-index: 600;
+      background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.16);
+      min-width: 210px; display: none;
+    }
+    .logo-popover.open { display: block; }
+    .logo-popover-row { margin-bottom: 10px; }
+    .logo-popover-row label { font-size: 0.72rem; color: var(--muted); font-weight: 600; display: block; margin-bottom: 3px; }
+    .logo-popover-row input[type="range"] { width: 100%; }
+    .logo-popover-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+    .logo-popover-btns button { font-size: 0.72rem; padding: 5px 10px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; background: #fff; font-family: var(--font); }
+    .logo-popover-btns button:hover { background: var(--accent-light); border-color: var(--accent); }
+    .logo-popover-btns .btn-pop-remove { color: var(--danger); border-color: #fca5a5; }
+    .logo-popover-btns .btn-pop-remove:hover { background: #fef2f2; border-color: var(--danger); }
+
+    /* ── Expense images ── */
+    .expense-section { margin-bottom: 20px; }
+    .expense-row { display: flex; align-items: center; gap: 12px; padding: 8px 4px; border-bottom: 1px solid var(--border); }
+    .expense-row img { max-height: 80px; max-width: 110px; object-fit: contain; border-radius: 4px; border: 1px solid var(--border); flex-shrink: 0; }
+    .expense-label { flex: 1; font-size: 0.88rem; }
+    .btn-add-expense {
+      display: flex; align-items: center; gap: 8px;
+      background: none; border: 1.5px dashed var(--border); border-radius: 6px;
+      padding: 10px 16px; font-size: 0.85rem; color: var(--muted); cursor: pointer;
+      transition: all .15s; font-family: var(--font); font-weight: 600; margin-top: 10px; margin-bottom: 16px;
+    }
+    .btn-add-expense:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+    #expenseImgInput { display: none; }
+
     /* ── Print ── */
     @media print {
       .controls-bar, .btn-add-row, .btn-del-row, .drop-zone, .tracker-section, #uploadStatus { display: none !important; }
@@ -608,17 +669,48 @@
   <!-- ══════════════════════════════════════
        INVOICE CARD
   ═══════════════════════════════════════ -->
+  <!-- Colour picker -->
+  <div class="colour-picker-bar">
+    <div class="colour-picker-group">
+      <span class="colour-picker-label">Invoice Background:</span>
+      <div class="bg-toggle">
+        <button id="bgWhite" class="bg-toggle-btn active" onclick="setBgColor('#ffffff')">White</button>
+        <button id="bgCream" class="bg-toggle-btn" onclick="setBgColor('#fdf6e3')">Cream</button>
+      </div>
+    </div>
+    <div class="colour-picker-sep"></div>
+    <div class="colour-picker-group">
+      <span class="colour-picker-label">Accent Colour:</span>
+      <div class="colour-swatches" id="accentSwatches"></div>
+      <label class="colour-custom-wrap" title="Custom accent colour">
+        <input type="color" id="customAccent" value="#2a7c7c" oninput="setAccentColor(this.value)">
+        <span>Custom</span>
+      </label>
+    </div>
+  </div>
+
   <div class="invoice-card" id="invoiceCard">
 
     <!-- Header -->
     <div class="invoice-header">
       <div class="invoice-title">
-        <h1>INVOICE</h1>
+        <h1><span class="editable" id="f-invoiceTitle" contenteditable="true" data-field="invoiceTitle">INVOICE</span></h1>
         <label class="logo-zone" id="logoZone" for="logoInput" title="Click or drop an image to add your logo">
           <span class="logo-zone-placeholder">Drop logo here<br>or tap to upload</span>
         </label>
         <input type="file" id="logoInput" accept="image/png,image/jpeg,image/svg+xml"
                onchange="handleLogoUpload(this.files[0])">
+        <div id="logoPopover" class="logo-popover">
+          <div class="logo-popover-row">
+            <label>Width: <span id="logoWidthValue">180px</span></label>
+            <input type="range" id="logoWidthSlider" min="40" max="400" value="180" oninput="onLogoWidthChange(this.value)">
+          </div>
+          <div class="logo-popover-btns">
+            <button onclick="closeLogoPopover(); document.getElementById('logoInput').click();">Replace image</button>
+            <button class="btn-pop-remove" onclick="removeLogo();">Remove</button>
+            <button onclick="closeLogoPopover()">Done</button>
+          </div>
+        </div>
       </div>
       <div class="business-block">
         <span class="editable business-name-field"   id="f-businessName"    contenteditable="true" data-field="businessName">Your Business Name</span>
@@ -700,6 +792,13 @@
     </div>
 
     <button class="btn-add-row" onclick="addLineItem()">+ Add Line Item</button>
+
+    <!-- Expense image attachments -->
+    <div class="expense-section">
+      <div id="expenseList"></div>
+      <button class="btn-add-expense" onclick="document.getElementById('expenseImgInput').click()">+ Add Expense Image</button>
+      <input type="file" id="expenseImgInput" accept="image/jpeg,image/png" onchange="addExpenseFromFile(this.files[0])">
+    </div>
 
     <!-- Totals -->
     <div class="totals-section">
@@ -875,12 +974,28 @@
 // ══════════════════════════════════════════════
 // Global state
 // ══════════════════════════════════════════════
-let currency     = '£';
-let vatOn        = false;
-let lineRowId    = 0;
-let trackerRowId = 0;
-let logoDataUrl  = null;   // base64 data URL of uploaded logo
-let logoDims     = null;   // { w, h } natural pixel dimensions
+let currency      = '£';
+let vatOn         = false;
+let lineRowId     = 0;
+let trackerRowId  = 0;
+let logoDataUrl   = null;   // base64 data URL of uploaded logo
+let logoDims      = null;   // { w, h } natural pixel dimensions
+let logoWidth     = 180;    // display width in px
+let bgColor       = '#ffffff';
+let accentColor   = '#2a7c7c';
+let expenseImages = [];     // [{ dataUrl, label, w, h }]
+
+const ACCENT_SWATCHES = [
+  { hex:'#2a7c7c', name:'Dark Teal' },
+  { hex:'#1a1a2e', name:'Navy' },
+  { hex:'#2d5a27', name:'Forest Green' },
+  { hex:'#6b2737', name:'Burgundy' },
+  { hex:'#3d3d3d', name:'Charcoal' },
+  { hex:'#4a6fa5', name:'Slate Blue' },
+  { hex:'#c4622d', name:'Warm Terracotta' },
+  { hex:'#6b5b95', name:'Dusty Purple' },
+  { hex:'#000000', name:'Black' },
+];
 
 // ══════════════════════════════════════════════
 // Utilities
@@ -915,27 +1030,148 @@ function setStatus(msg) {
 }
 
 // ══════════════════════════════════════════════
+// Background + Accent colour pickers
+// ══════════════════════════════════════════════
+function setBgColor(hex) {
+  bgColor = hex;
+  document.getElementById('invoiceCard').style.background = hex;
+  document.getElementById('bgWhite').classList.toggle('active', hex === '#ffffff');
+  document.getElementById('bgCream').classList.toggle('active', hex === '#fdf6e3');
+  localStorage.setItem('inv_bg_color', hex);
+}
+
+function setAccentColor(hex) {
+  accentColor = hex;
+  document.documentElement.style.setProperty('--accent', hex);
+  document.getElementById('customAccent').value = hex;
+  document.querySelectorAll('.colour-swatch').forEach(s => {
+    s.classList.toggle('active', s.dataset.color === hex);
+  });
+  localStorage.setItem('inv_accent_color', hex);
+}
+
+function initAccentSwatches() {
+  const container = document.getElementById('accentSwatches');
+  ACCENT_SWATCHES.forEach(sw => {
+    const btn = document.createElement('button');
+    btn.className        = 'colour-swatch';
+    btn.dataset.color    = sw.hex;
+    btn.title            = sw.name;
+    btn.style.background = sw.hex;
+    btn.onclick          = () => setAccentColor(sw.hex);
+    container.appendChild(btn);
+  });
+}
+
+// ══════════════════════════════════════════════
+// Logo popover
+// ══════════════════════════════════════════════
+function showLogoPopover() {
+  document.getElementById('logoWidthSlider').value = logoWidth;
+  document.getElementById('logoWidthValue').textContent = logoWidth + 'px';
+  document.getElementById('logoPopover').classList.add('open');
+}
+
+function closeLogoPopover() {
+  document.getElementById('logoPopover').classList.remove('open');
+}
+
+function onLogoWidthChange(val) {
+  logoWidth = parseInt(val);
+  document.getElementById('logoWidthValue').textContent = logoWidth + 'px';
+  const img = document.querySelector('#logoZone img');
+  if (img && logoDims && logoDims.h > 0) {
+    const h = Math.round(logoWidth * (logoDims.h / logoDims.w));
+    img.style.width    = logoWidth + 'px';
+    img.style.height   = h + 'px';
+    img.style.maxWidth = 'none';
+    img.style.maxHeight = 'none';
+  }
+  localStorage.setItem('inv_logo_width', logoWidth);
+}
+
+// ══════════════════════════════════════════════
+// Expense images
+// ══════════════════════════════════════════════
+function addExpenseFromFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    const tmp = new Image();
+    tmp.onload = () => {
+      expenseImages.push({ dataUrl, label: '', w: tmp.naturalWidth, h: tmp.naturalHeight });
+      renderExpenseImages();
+      saveExpenses();
+    };
+    tmp.src = dataUrl;
+    document.getElementById('expenseImgInput').value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderExpenseImages() {
+  const container = document.getElementById('expenseList');
+  container.innerHTML = '';
+  expenseImages.forEach((img, i) => {
+    const row = document.createElement('div');
+    row.className = 'expense-row';
+    row.innerHTML = `
+      <img src="${img.dataUrl}" alt="Expense ${i+1}">
+      <span class="editable expense-label" contenteditable="true" data-expense-idx="${i}">${esc(img.label || '')}</span>
+      <button style="background:none;border:none;cursor:pointer;color:#cc0000;font-size:16px;padding:4px 8px;" onclick="removeExpense(${i})" title="Remove">&#215;</button>`;
+    row.querySelector('[data-expense-idx]').addEventListener('input', ev => {
+      expenseImages[i].label = ev.target.textContent.trim();
+      saveExpenses();
+    });
+    container.appendChild(row);
+  });
+}
+
+function removeExpense(i) {
+  expenseImages.splice(i, 1);
+  renderExpenseImages();
+  saveExpenses();
+}
+
+function saveExpenses() {
+  try { localStorage.setItem('inv_expenses', JSON.stringify(expenseImages)); } catch(e) {}
+}
+
+function loadExpenses() {
+  try {
+    const raw = localStorage.getItem('inv_expenses');
+    if (raw) { expenseImages = JSON.parse(raw); renderExpenseImages(); }
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════
 // Logo
 // ══════════════════════════════════════════════
 function renderLogo() {
   const zone = document.getElementById('logoZone');
   if (logoDataUrl) {
-    zone.innerHTML = `<img src="${logoDataUrl}" alt="Logo"><button class="logo-remove-btn" onclick="removeLogo(event)">&#215; Remove</button>`;
-    zone.title     = 'Click or drop to replace logo';
+    const w = logoWidth || 180;
+    const h = (logoDims && logoDims.h > 0) ? Math.round(w * (logoDims.h / logoDims.w)) : w;
+    zone.innerHTML = `<img src="${logoDataUrl}" alt="Logo" style="width:${w}px;height:${h}px;max-width:none;max-height:none;object-fit:contain;display:block;pointer-events:none;">`;
+    zone.title     = 'Click to resize or replace logo';
     zone.classList.add('has-logo');
+    zone.onclick   = e => { e.preventDefault(); showLogoPopover(); };
   } else {
     zone.innerHTML = `<span class="logo-zone-placeholder">Drop logo here<br>or tap to upload</span>`;
     zone.title     = 'Click or drop an image to add your logo';
     zone.classList.remove('has-logo');
+    zone.onclick   = null;
   }
 }
 
-function removeLogo(e) {
-  e.preventDefault();
-  e.stopPropagation();
+function removeLogo() {
   logoDataUrl = null;
   logoDims    = null;
+  logoWidth   = 180;
   localStorage.removeItem('inv_logo');
+  localStorage.removeItem('inv_logo_width');
+  closeLogoPopover();
   renderLogo();
 }
 
@@ -1003,6 +1239,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('f-invoiceDate').textContent = todayStr();
   document.getElementById('f-dueDate').textContent     = in30days();
 
+  // Accent colour swatches
+  initAccentSwatches();
+
   // Load saved data
   loadAll();
 
@@ -1020,6 +1259,15 @@ document.addEventListener('DOMContentLoaded', () => {
   setupDrop();
   // Logo drop zone
   setupLogoDrop();
+
+  // Close logo popover when clicking outside
+  document.addEventListener('click', e => {
+    const popover = document.getElementById('logoPopover');
+    const zone    = document.getElementById('logoZone');
+    if (popover.classList.contains('open') && !popover.contains(e.target) && !zone.contains(e.target)) {
+      closeLogoPopover();
+    }
+  });
 });
 
 // ══════════════════════════════════════════════
@@ -1177,6 +1425,11 @@ function newInvoice() {
   document.getElementById('lineBody').innerHTML = '';
   addLineItem();
 
+  // Clear expense images
+  expenseImages = [];
+  renderExpenseImages();
+  saveExpenses();
+
   saveInvoice();
 }
 
@@ -1256,8 +1509,27 @@ function loadAll() {
   // Logo
   try {
     const savedLogo = localStorage.getItem('inv_logo');
-    if (savedLogo) loadLogoFromDataUrl(savedLogo);
+    if (savedLogo) {
+      const savedWidth = localStorage.getItem('inv_logo_width');
+      if (savedWidth) logoWidth = parseInt(savedWidth);
+      loadLogoFromDataUrl(savedLogo);
+    }
   } catch(e) {}
+
+  // Background colour
+  try {
+    const savedBg = localStorage.getItem('inv_bg_color');
+    if (savedBg) setBgColor(savedBg);
+  } catch(e) {}
+
+  // Accent colour
+  try {
+    const savedAccent = localStorage.getItem('inv_accent_color');
+    if (savedAccent) setAccentColor(savedAccent);
+  } catch(e) {}
+
+  // Expense images
+  loadExpenses();
 
   updateTrackerFooter();
 }
@@ -1304,18 +1576,30 @@ function addTrackerRow(data) {
   cols.forEach(col => {
     cells += `<td><span class="editable" contenteditable="true" data-tcol="${col}">${esc(data[col] || '')}</span></td>`;
   });
-
-  tr.innerHTML = cells + `<td style="text-align:center"><button class="btn-del-row" title="Delete row" onclick="deleteTrackerRow(this)">&#215;</button></td>`;
+  tr.innerHTML = cells;
 
   tr.querySelectorAll('[data-tcol]').forEach(el => {
     el.addEventListener('input', () => { updateTrackerFooter(); saveTracker(); });
   });
 
+  const td = document.createElement('td');
+  const btn = document.createElement('button');
+  btn.textContent = '×';
+  btn.style.cssText = 'background:none;border:none;color:#cc0000;font-size:18px;cursor:pointer;padding:4px 8px;';
+  btn.onclick = function() {
+    if (confirm('Delete this row?')) {
+      tr.remove();
+      saveTracker();
+    }
+  };
+  td.appendChild(btn);
+  tr.appendChild(td);
+
   document.getElementById('trackerBody').appendChild(tr);
 }
 
 function deleteTrackerRow(btn) {
-  if (!confirm('Are you sure you want to delete this row? This cannot be undone.')) return;
+  if (!confirm('Delete this row? This cannot be undone.')) return;
   btn.closest('tr').remove();
   updateTrackerFooter();
   saveTracker();
@@ -1383,34 +1667,41 @@ async function handlePDFFiles(files) {
         pages       = cleanPages;
         lines       = cleanPages.join('\n').split('\n').map(l => l.trim()).filter(Boolean);
         displayText = cleanPages.join('\n\n--- PAGE BREAK ---\n\n');
-        console.log('PDF RAW TEXT (character-spacing collapsed):', displayText);
+        console.log('PDF TEXT (char-spacing collapsed):', displayText);
       } else {
         console.log('PDF RAW TEXT:', rawFull);
       }
 
-      // Raw text debug panel
+      // Choose parser
+      const parsed   = wasSpaced ? parseConcatenatedPDF(displayText) : parsePDFText(lines, file.name);
+      const pathUsed = wasSpaced ? 'concatenated-text path' : 'normal path';
+      console.log(`[PDF Parser] Using ${pathUsed}`, parsed);
+
+      // Debug panel
       const existingDbg = document.getElementById('pdf-debug');
       if (existingDbg) existingDbg.remove();
       const dbgDiv = document.createElement('div');
       dbgDiv.id = 'pdf-debug';
-      dbgDiv.style.cssText = 'position:fixed;top:20px;right:20px;width:400px;max-height:80vh;overflow-y:scroll;background:#fff;border:2px solid red;padding:16px;z-index:9999;font-size:12px;white-space:pre-wrap;';
+      dbgDiv.style.cssText = 'position:fixed;top:20px;right:20px;width:420px;max-height:80vh;overflow-y:scroll;background:#fff;border:2px solid red;padding:16px;z-index:9999;font-size:12px;white-space:pre-wrap;font-family:monospace;';
       const closeBtn = document.createElement('button');
       closeBtn.textContent = '✕ Close';
       closeBtn.style.cssText = 'display:block;margin-bottom:8px;cursor:pointer;';
       closeBtn.onclick = () => dbgDiv.remove();
       dbgDiv.appendChild(closeBtn);
+
+      const parsedSummary = ['invoiceNo','date','client','desc','amount','tax']
+        .map(k => `${k}: ${parsed[k] || '(not found)'}`)
+        .join('\n');
+      const textLabel = wasSpaced ? 'CLEANED TEXT (char-spacing collapsed):' : 'RAW PDF TEXT:';
       const dbgContent = document.createElement('div');
-      const dbgLabel   = wasSpaced ? '<strong>CLEANED PDF TEXT (char-spacing collapsed):</strong>' : '<strong>RAW PDF TEXT:</strong>';
-      dbgContent.innerHTML = dbgLabel + '\n\n' + displayText.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+      dbgContent.innerHTML =
+        `<strong>Parser path: ${pathUsed}</strong>\n\n` +
+        `<strong>Parsed values:</strong>\n${parsedSummary.replace(/&/g,'&amp;').replace(/</g,'&lt;')}\n\n` +
+        `<strong>${textLabel}</strong>\n\n` +
+        displayText.replace(/&/g,'&amp;').replace(/</g,'&lt;');
       dbgDiv.appendChild(dbgContent);
       document.body.appendChild(dbgDiv);
 
-      // Debug: log raw text to console page by page
-      console.group(`[PDF Debug] ${file.name}`);
-      pages.forEach((p, i) => console.log(`--- Page ${i + 1} ---\n${p}`));
-      console.groupEnd();
-
-      const parsed = parsePDFText(lines, file.name);
       showDebugModal(file.name, pages, parsed);
 
       addTrackerRow(parsed);
@@ -1431,23 +1722,68 @@ async function handlePDFFiles(files) {
   document.getElementById('pdfInput').value = '';
 }
 
-// Extract text from each page using Y-coordinate grouping to reconstruct real lines.
 function isCharSpaced(text) {
-  // More than 30% of characters are isolated single letters/digits surrounded by spaces
-  const singles = (text.match(/(?<![^ ]) [A-Za-z0-9£] (?![^ ])/g) || []).length;
-  const total   = text.replace(/\s/g, '').length;
-  return total > 0 && (singles / total) > 0.30;
+  // Check if the text opens with the classic spaced-character pattern: "I N V - 0 1 4 ..."
+  return /^([A-Za-z] ){5,}/.test(text.trimStart());
 }
 
 function collapseCharSpacing(text) {
-  // Collapse spaces between individual characters until stable
+  // Only collapse gaps where BOTH surrounding chars are isolated single characters.
+  // Pattern: \b([A-Za-z])\s(?=[A-Za-z]\s) — a single letter at a word boundary followed by
+  // space, with lookahead of another single letter + space. This avoids collapsing real words.
   let prev = null;
   while (prev !== text) {
     prev = text;
-    text = text.replace(/(?<=[A-Za-z£0-9]) (?=[A-Za-z£0-9])/g, '');
+    text = text.replace(/\b([A-Za-z])\s(?=[A-Za-z]\s)/g, '$1');
   }
-  // Collapse any runs of multiple spaces to a single space
   return text.replace(/ {2,}/g, ' ').trim();
+}
+
+function parseConcatenatedPDF(text) {
+  const result = {};
+
+  // Invoice number: clean token like INV-014
+  const invM = text.match(/INV-\d+/i);
+  if (invM) result.invoiceNo = invM[0].toUpperCase();
+
+  // Date: first d/m/yyyy or similar
+  const dateM = text.match(/\d{1,2}\/\d{1,2}\/\d{2,4}/);
+  if (dateM) result.date = dateM[0];
+
+  // Amount: first currency symbol + digits
+  const amtM = text.match(/[£$€]([\d,]+\.?\d{0,2})/);
+  if (amtM) {
+    result.amount = amtM[1].replace(/,/g, '');
+    result.tax    = (parseFloat(result.amount) * 0.20).toFixed(2);
+  }
+
+  // Client: after "Billedto:" or "Billed to:" — first token starting with capital that isn't a postcode
+  const billIdx = text.search(/billed?\s*to\s*:?/i);
+  if (billIdx !== -1) {
+    const afterBill = text.slice(billIdx).replace(/billed?\s*to\s*:?\s*/i, '');
+    for (const tok of afterBill.split(/\s+/)) {
+      if (!tok || tok.length < 2) continue;
+      // Skip postcodes: letters+digits mixed short tokens like E82ER, W1A1AA
+      if (/^[A-Z]\d/i.test(tok) || /\d[A-Z]$/i.test(tok)) continue;
+      // Skip common address words and emails
+      if (/^(road|street|avenue|lane|close|drive|place|way|court|london|manchester|birmingham|uk)$/i.test(tok)) continue;
+      if (/@/.test(tok)) continue;
+      if (/^[A-Z]/i.test(tok)) { result.client = tok; break; }
+    }
+  }
+
+  // Description: last meaningful token — not URL, email, sort code (6 digits), account no (8 digits), currency
+  const tokens = text.split(/\s+/).filter(t =>
+    t.length > 3 &&
+    !/^https?:\/\//i.test(t) &&
+    !/@/.test(t) &&
+    !/^\d{6}$/.test(t) &&
+    !/^\d{8}$/.test(t) &&
+    !/^[£$€]/.test(t)
+  );
+  if (tokens.length > 0) result.desc = tokens[tokens.length - 1];
+
+  return result;
 }
 
 async function extractPDFText(file) {
@@ -1657,10 +1993,12 @@ function downloadPDF() {
   const doc       = new jsPDF({ unit:'mm', format:'a4' });
   doc.setFont('helvetica');
 
-  const PW   = 210;
-  const M    = 15;
-  const CW   = PW - M * 2;
-  let   y    = M;
+  const PW    = 210;
+  const PH    = 297;
+  const M     = 15;
+  const CW    = PW - M * 2;
+  const MAX_Y = PH - M;
+  let   y     = M;
 
   const ACCENT  = [42,  124, 124];
   const DARK    = [30,   90,  90];
@@ -1682,21 +2020,38 @@ function downloadPDF() {
 
   const fv = id => document.getElementById(id).textContent.trim();
 
-  // ── Header ──────────────────────────────
-  sf(26, 'bold', ACCENT);
-  doc.text('INVOICE', M, y + 8);
+  // Continuation header drawn at top of overflow pages
+  const drawContinuationHeader = () => {
+    sf(7, 'normal', MUTED);
+    doc.text(`${fv('f-businessName')}  •  Invoice #${fv('f-invoiceNum')}  •  ${fv('f-invoiceDate')}`, M, y + 3);
+    y += 7;
+    hline(y, BORDER, 0.3);
+    y += 5;
+  };
 
-  // Logo — drawn below the INVOICE heading on the left
+  const checkPageBreak = (neededH) => {
+    if (y + neededH > MAX_Y) {
+      doc.addPage();
+      y = M;
+      drawContinuationHeader();
+    }
+  };
+
+  // ── Header ──────────────────────────────
+  const invoiceTitle = fv('f-invoiceTitle') || 'INVOICE';
+  sf(26, 'bold', ACCENT);
+  doc.text(invoiceTitle, M, y + 8);
+
+  // Logo
   let logoBlockH = 0;
   if (logoDataUrl && logoDims && logoDims.h > 0) {
-    const maxLogoH = 18; // mm
+    const maxLogoH = 20;
     const ratio    = logoDims.w / logoDims.h;
     logoBlockH     = maxLogoH;
-    const logoW    = Math.min(maxLogoH * ratio, 60);
+    const logoW    = Math.min(maxLogoH * ratio, 70);
     const imgType  = logoDataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG';
-    try {
-      doc.addImage(logoDataUrl, imgType, M, y + 12, logoW, logoBlockH);
-    } catch(e) { console.warn('Logo PDF embed failed:', e); logoBlockH = 0; }
+    try { doc.addImage(logoDataUrl, imgType, M, y + 11, logoW, logoBlockH); }
+    catch(e) { console.warn('Logo PDF embed failed:', e); logoBlockH = 0; }
   }
 
   sf(13, 'bold', TEXT);
@@ -1745,16 +2100,14 @@ function downloadPDF() {
   hline(y, BORDER, 0.3);
   y += 6;
 
-  // ── Line-items table (drawn manually — no autoTable dependency) ──
-  const ROW_H  = 8;   // mm per data row
-  const HEAD_H = 7;   // mm header row
+  // ── Line-items table ──────────────────────
+  const ROW_H  = 8;
+  const HEAD_H = 7;
 
-  // Column definitions: [label, widthMM, align]
   const cols = vatOn
     ? [ ['Description',80,'left'], ['Qty',14,'center'], ['Unit Price',28,'right'], ['VAT (20%)',28,'right'], ['Amount',30,'right'] ]
     : [ ['Description',96,'left'], ['Qty',18,'center'], ['Unit Price',33,'right'], ['Amount',33,'right'] ];
 
-  // Gather rows
   const tableRows = [];
   document.querySelectorAll('#lineBody tr').forEach(tr => {
     const desc  = tr.querySelector('[data-col="desc"]').textContent.trim();
@@ -1768,7 +2121,8 @@ function downloadPDF() {
       : [desc, qty, fmt(price), fmt(amt)]);
   });
 
-  // Draw header row
+  // Header row
+  checkPageBreak(HEAD_H + ROW_H);
   doc.setFillColor(...ACCENT);
   doc.rect(M, y, CW, HEAD_H, 'F');
   let cx = M;
@@ -1779,9 +2133,9 @@ function downloadPDF() {
   });
   y += HEAD_H;
 
-  // Draw data rows
+  // Data rows
   tableRows.forEach((row, ri) => {
-    // Alternate row fill
+    checkPageBreak(ROW_H);
     if (ri % 2 === 1) {
       doc.setFillColor(248, 250, 252);
       doc.rect(M, y, CW, ROW_H, 'F');
@@ -1792,13 +2146,10 @@ function downloadPDF() {
       sf(8, 'normal', TEXT);
       const tx = align === 'right' ? cx + w - 3 : (align === 'center' ? cx + w / 2 : cx + 3);
       const textAlign = align === 'center' ? 'center' : (align === 'right' ? 'right' : 'left');
-      // Truncate long text to fit column
-      const maxW = w - 5;
-      const truncated = doc.splitTextToSize(cell, maxW)[0] || '';
+      const truncated = doc.splitTextToSize(cell, w - 5)[0] || '';
       doc.text(truncated, tx, y + 5.5, { align: textAlign });
       cx += w;
     });
-    // Bottom border
     doc.setDrawColor(...BORDER);
     doc.setLineWidth(0.2);
     doc.line(M, y + ROW_H, M + CW, y + ROW_H);
@@ -1812,6 +2163,7 @@ function downloadPDF() {
   const total = sub + vat;
   const TX    = PW - M - 66;
 
+  checkPageBreak(vatOn ? 24 : 20);
   sf(8.5, 'normal', MUTED); doc.text('Subtotal:', TX, y);
   sf(8.5, 'bold',   TEXT);  doc.text(fmt(sub), PW - M, y, { align:'right' }); y += 5;
 
@@ -1826,9 +2178,8 @@ function downloadPDF() {
   y += 12;
 
   // ── Payment details ─────────────────────
-  if (y > 238) { doc.addPage(); y = M; }
+  checkPageBreak(40);
   hline(y, BORDER, 0.3); y += 6;
-
   sf(6.5, 'bold', ACCENT); doc.text('PAYMENT DETAILS', M, y); y += 5;
 
   const payRows = [
@@ -1840,6 +2191,7 @@ function downloadPDF() {
   ];
 
   payRows.forEach(([k, v]) => {
+    checkPageBreak(6);
     sf(8, 'bold', MUTED);   doc.text(k, M, y);
     sf(8, 'normal', TEXT);  doc.text(v, M + 30, y);
     y += 5;
@@ -1848,9 +2200,38 @@ function downloadPDF() {
   const notes = fv('f-notes');
   if (notes) {
     y += 2;
+    checkPageBreak(10);
     sf(7.5, 'italic', MUTED);
-    const lines = doc.splitTextToSize(notes, CW);
-    doc.text(lines, M, y);
+    const noteLines = doc.splitTextToSize(notes, CW);
+    noteLines.forEach(line => { checkPageBreak(5); doc.text(line, M, y); y += 5; });
+  }
+
+  // ── Expense images ───────────────────────
+  if (expenseImages.length > 0) {
+    checkPageBreak(14);
+    hline(y, BORDER, 0.3); y += 6;
+    sf(6.5, 'bold', ACCENT); doc.text('EXPENSE ATTACHMENTS', M, y); y += 8;
+
+    for (const exp of expenseImages) {
+      if (!exp.dataUrl) continue;
+      const maxH = 40, maxW = 65;
+      let imgW = maxW, imgH = maxH;
+      if (exp.w && exp.h && exp.h > 0) {
+        const ratio = exp.w / exp.h;
+        if (ratio > maxW / maxH) { imgW = maxW; imgH = maxW / ratio; }
+        else                      { imgH = maxH; imgW = maxH * ratio; }
+      }
+      checkPageBreak(imgH + 8);
+      const imgType = exp.dataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+      try { doc.addImage(exp.dataUrl, imgType, M, y, imgW, imgH); }
+      catch(e) { console.warn('Expense image embed failed:', e); }
+      if (exp.label) {
+        sf(8, 'normal', TEXT);
+        const labelLines = doc.splitTextToSize(exp.label, CW - imgW - 8);
+        doc.text(labelLines, M + imgW + 6, y + 6);
+      }
+      y += imgH + 8;
+    }
   }
 
   // ── Save ────────────────────────────────
