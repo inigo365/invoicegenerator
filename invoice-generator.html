@@ -1680,6 +1680,15 @@
   };
   document.head.appendChild(s);
 }());
+
+// Tesseract.js — OCR fallback for outlined/vector PDFs
+(function () {
+  var s = document.createElement('script');
+  s.src = 'https://unpkg.com/tesseract.js@5/dist/tesseract.min.js';
+  s.onload  = function () { console.log('Tesseract.js loaded.'); };
+  s.onerror = function () { console.warn('Tesseract.js failed to load from CDN.'); };
+  document.head.appendChild(s);
+}());
 </script>
 
 <script>
@@ -2382,6 +2391,7 @@ function deleteTrackerRow(btn) {
 }
 
 let _deleteTargetRow = null;
+let _ocrWorker       = null;   // reused Tesseract worker across files
 
 function showDeleteConfirm(tr) {
   _deleteTargetRow = tr;
@@ -2457,26 +2467,57 @@ async function handlePDFFiles(files) {
     try {
       let { pages, lines } = await extractPDFText(file);
 
-      // Empty text = outlined/vector PDF — PDF.js cannot extract anything
-      const rawFull = pages.join('\n\n--- PAGE BREAK ---\n\n');
-      if (!rawFull.trim()) {
-        // Show message in debug panel; do NOT add a blank tracker row
+      // Re-open the PDF document so we can render pages for OCR if needed
+      const buf2 = await file.arrayBuffer();
+      const pdfDoc = await pdfjsLib.getDocument({ data: buf2 }).promise;
+
+      // Check for thin/empty extraction — fall back to OCR page by page
+      let rawFull = pages.join('\n\n--- PAGE BREAK ---\n\n');
+      let usedOCR = false;
+
+      if (rawFull.trim().length < 20) {
+        // Show OCR loading indicator
         const existingDbg = document.getElementById('pdf-debug');
         if (existingDbg) existingDbg.remove();
-        const dbgDiv = document.createElement('div');
-        dbgDiv.id = 'pdf-debug';
-        dbgDiv.style.cssText = 'position:fixed;top:20px;right:20px;width:440px;background:#fff;border:2px solid #e07b00;padding:16px;z-index:9999;font-size:13px;font-family:sans-serif;border-radius:8px;';
-        const closeBtn = document.createElement('button');
-        closeBtn.textContent = '✕ Close';
-        closeBtn.style.cssText = 'display:block;margin-bottom:10px;cursor:pointer;';
-        closeBtn.onclick = () => dbgDiv.remove();
-        dbgDiv.appendChild(closeBtn);
-        const msg = document.createElement('div');
-        msg.innerHTML = `<strong>⚠ Cannot parse: ${file.name}</strong><br><br>This PDF uses outlined or vector text — PDF.js cannot extract any content from it. Please add this invoice to the tracker manually.`;
-        dbgDiv.appendChild(msg);
-        document.body.appendChild(dbgDiv);
-        setStatus(`Skipped ${file.name} — outlined PDF (no extractable text).`);
-        continue;
+        const ocrIndicator = document.createElement('div');
+        ocrIndicator.id = 'pdf-debug';
+        ocrIndicator.style.cssText = 'position:fixed;top:20px;right:20px;width:380px;background:#fff;border:2px solid var(--accent,#2a7c7c);padding:16px;z-index:9999;font-size:13px;font-family:sans-serif;border-radius:8px;';
+        ocrIndicator.innerHTML = `<strong>&#128269; OCR in progress…</strong><br><span id="ocrStatusLine">Initialising OCR engine…</span>`;
+        document.body.appendChild(ocrIndicator);
+
+        const setOCRStatus = msg => {
+          const el = document.getElementById('ocrStatusLine');
+          if (el) el.textContent = msg;
+        };
+
+        try {
+          setStatus(`Running OCR on ${file.name}…`);
+          const worker   = await getOCRWorker();
+          const ocrPages = [];
+
+          for (let p = 1; p <= pdfDoc.numPages; p++) {
+            setOCRStatus(`Running OCR on page ${p} of ${pdfDoc.numPages}…`);
+            const page     = await pdfDoc.getPage(p);
+            const dataURL  = await renderPageToDataURL(page, 2.0);
+            const result   = await worker.recognize(dataURL);
+            ocrPages.push(result.data.text);
+          }
+
+          rawFull = ocrPages.join('\n\n--- PAGE BREAK ---\n\n');
+          usedOCR = true;
+          console.log('OCR result:', rawFull);
+        } catch (ocrErr) {
+          console.warn('OCR failed:', ocrErr);
+          ocrIndicator.innerHTML =
+            `<strong>⚠ OCR failed for ${file.name}</strong><br><br>${ocrErr.message}<br><br>Please add this invoice to the tracker manually.`;
+          const closeBtn2 = document.createElement('button');
+          closeBtn2.textContent = '✕ Close';
+          closeBtn2.style.cssText = 'display:block;margin-top:10px;cursor:pointer;';
+          closeBtn2.onclick = () => ocrIndicator.remove();
+          ocrIndicator.appendChild(closeBtn2);
+          setStatus(`OCR failed for ${file.name}.`);
+          continue;
+        }
       }
 
       // Detect and fix character-spaced PDFs
@@ -2501,11 +2542,11 @@ async function handlePDFFiles(files) {
       // Choose parser and record which regex matched each field
       let parsed, pathUsed, matchLog;
       if (isSpaced) {
-        pathUsed  = 'concatenated-text path';
+        pathUsed  = usedOCR ? 'OCR fallback → concatenated-text path' : 'concatenated-text path';
         matchLog  = {};
         parsed    = parseConcatenatedPDF(displayText, matchLog);
       } else {
-        pathUsed  = 'normal path';
+        pathUsed  = usedOCR ? 'OCR fallback → normal path' : 'normal path';
         matchLog  = null;
         parsed    = parsePDFText(lines, file.name);
       }
@@ -2530,7 +2571,9 @@ async function handlePDFFiles(files) {
           return `${k}: ${val}${matched}`;
         })
         .join('\n');
-      const textLabel = isSpaced ? `CLEANED TEXT (isSpaced=true):` : 'RAW PDF TEXT:';
+      const textLabel = usedOCR
+        ? (isSpaced ? 'OCR TEXT (char-spacing collapsed):' : 'OCR TEXT:')
+        : (isSpaced ? 'CLEANED TEXT (isSpaced=true):'      : 'RAW PDF TEXT:');
       const dbgContent = document.createElement('div');
       dbgContent.innerHTML =
         `<strong>isSpaced: ${isSpaced}</strong>  <strong>path: ${pathUsed}</strong>\n\n` +
@@ -2688,6 +2731,31 @@ async function extractPDFText(file) {
     .filter(Boolean);
 
   return { pages, lines };
+}
+
+// ── OCR helpers ──────────────────────────────────────────────
+
+// Initialise Tesseract worker once; reuse for all subsequent files.
+async function getOCRWorker() {
+  if (_ocrWorker) return _ocrWorker;
+  if (typeof Tesseract === 'undefined') {
+    throw new Error('Tesseract.js is not loaded — check your internet connection.');
+  }
+  _ocrWorker = await Tesseract.createWorker('eng', 1, {
+    logger: m => { if (m.status === 'recognizing text') console.log(`OCR progress: ${Math.round(m.progress * 100)}%`); }
+  });
+  return _ocrWorker;
+}
+
+// Render one PDF.js page to a canvas at the given scale and return a dataURL.
+async function renderPageToDataURL(page, scale) {
+  const viewport = page.getViewport({ scale });
+  const canvas   = document.createElement('canvas');
+  canvas.width   = Math.floor(viewport.width);
+  canvas.height  = Math.floor(viewport.height);
+  const ctx      = canvas.getContext('2d');
+  await page.render({ canvasContext: ctx, viewport }).promise;
+  return canvas.toDataURL('image/png');
 }
 
 // ── Debug modal ──────────────────────────────────────────────
