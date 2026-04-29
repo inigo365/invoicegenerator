@@ -380,44 +380,109 @@
     .tracker-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.8rem;
-      min-width: 1100px;
+      font-size: 12px;
+      min-width: 900px;
+      table-layout: fixed;
     }
     .tracker-table th {
       background: var(--accent-dark);
       color: #fff;
-      padding: 10px 10px;
+      padding: 8px 6px;
       text-align: left;
-      font-size: 0.68rem;
+      font-size: 11px;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.4px;
+      letter-spacing: 0.3px;
       white-space: nowrap;
+      overflow: hidden;
     }
+    .tracker-table th:nth-child(1)  { width: 70px; }
+    .tracker-table th:nth-child(2)  { width: 85px; }
+    .tracker-table th:nth-child(3)  { width: 110px; }
+    .tracker-table th:nth-child(4)  { width: 130px; }
+    .tracker-table th:nth-child(5)  { width: 75px; }
+    .tracker-table th:nth-child(6)  { width: 45px; }
+    .tracker-table th:nth-child(7)  { width: 85px; }
+    .tracker-table th:nth-child(8)  { width: 75px; }
+    .tracker-table th:nth-child(9)  { width: 75px; }
+    .tracker-table th:nth-child(10) { width: 70px; }
+    .tracker-table th:nth-child(11) { width: 80px; }
+    .tracker-table th:nth-child(12) { width: 36px; position: sticky; right: 0; background: var(--accent-dark); z-index: 3; box-shadow: -2px 0 6px rgba(0,0,0,0.12); }
     .tracker-table td {
       padding: 0;
       border-bottom: 1px solid var(--border);
       vertical-align: middle;
+      overflow: hidden;
     }
     .tracker-table tbody tr:last-child td { border-bottom: none; }
     .tracker-table tbody tr:hover td { background: var(--accent-light); }
+    .tracker-table tbody tr:hover .tracker-del-td { background: var(--accent-light); }
     .tracker-table td .editable {
       display: block;
-      min-height: 40px;
-      line-height: 40px;
-      padding: 0 8px;
-      min-width: 50px;
+      min-height: 36px;
+      line-height: 36px;
+      padding: 0 6px;
       width: 100%;
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tracker-del-td {
+      position: sticky;
+      right: 0;
+      background: #fff;
+      z-index: 2;
+      box-shadow: -2px 0 6px rgba(0,0,0,0.10);
+      text-align: center;
+      padding: 0 2px;
+      width: 36px;
+    }
+    .tracker-del-btn {
+      border: none;
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 13px;
+      cursor: pointer;
+      color: #fff;
+      line-height: 1.4;
     }
     .tracker-table tfoot td {
       background: var(--accent-light);
       font-weight: 800;
       border-top: 2px solid var(--accent);
       color: var(--accent-dark);
-      padding: 8px 10px;
+      padding: 7px 6px;
       white-space: nowrap;
+      font-size: 12px;
     }
-    .tracker-table tfoot td:first-child { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .tracker-table tfoot td:first-child { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+    /* Delete confirm modal */
+    #deleteConfirmModal {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); z-index: 9100;
+      align-items: center; justify-content: center; padding: 16px;
+    }
+    #deleteConfirmModal.open { display: flex; }
+    #deleteConfirmBox {
+      background: #fff; border-radius: var(--radius);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.28);
+      max-width: 380px; width: 100%; overflow: hidden;
+    }
+    #deleteConfirmHead {
+      padding: 14px 18px; color: #fff; font-weight: 700; font-size: 0.9rem;
+    }
+    #deleteConfirmBody { padding: 18px; font-size: 0.9rem; color: var(--text); line-height: 1.5; }
+    #deleteConfirmFoot {
+      display: flex; justify-content: flex-end; gap: 10px;
+      padding: 12px 18px; border-top: 1px solid var(--border);
+    }
+    #deleteConfirmFoot button {
+      padding: 8px 20px; border-radius: 6px; font-size: 0.85rem;
+      font-weight: 700; cursor: pointer; font-family: var(--font); border: none;
+    }
+    #deleteConfirmCancel { background: var(--border); color: var(--text); }
+    #deleteConfirmOk    { color: #fff; }
 
     /* ── Upload status ── */
     #uploadStatus {
@@ -896,7 +961,7 @@
             <th>Tax (20%)</th>
             <th>Tax Aside</th>
             <th>Notes</th>
-            <th style="width:44px"></th>
+            <th></th>
           </tr>
         </thead>
         <tbody id="trackerBody"></tbody>
@@ -906,6 +971,18 @@
   </div>
 
 </div><!-- /page-content -->
+
+<!-- ── Delete confirm modal ── -->
+<div id="deleteConfirmModal">
+  <div id="deleteConfirmBox">
+    <div id="deleteConfirmHead">Delete Invoice Record</div>
+    <div id="deleteConfirmBody">Are you sure you want to delete this invoice record? This cannot be undone.</div>
+    <div id="deleteConfirmFoot">
+      <button id="deleteConfirmCancel" onclick="closeDeleteConfirm()">Cancel</button>
+      <button id="deleteConfirmOk">Delete</button>
+    </div>
+  </div>
+</div>
 
 <!-- ── PDF debug modal ── -->
 <div id="debugModal" onclick="if(event.target===this)closeDebugModal()">
@@ -1636,17 +1713,13 @@ function addTrackerRow(data) {
   });
 
   const td = document.createElement('td');
-  td.style.cssText = 'text-align:center;padding:0;width:44px;';
+  td.className = 'tracker-del-td';
   const btn = document.createElement('button');
   btn.textContent = '×';
-  const accentHex = localStorage.getItem('inv_accent_color') || '#2a7c7c';
-  btn.style.cssText = `background:none;border:none;color:${accentHex};font-size:18px;cursor:pointer;padding:4px 8px;`;
-  btn.onclick = function() {
-    if (confirm('Delete this row?')) {
-      tr.remove();
-      saveTracker();
-    }
-  };
+  btn.className = 'tracker-del-btn';
+  const accentHex = localStorage.getItem('inv_accent_color') || accentColor || '#2a7c7c';
+  btn.style.background = accentHex;
+  btn.onclick = function() { showDeleteConfirm(tr); };
   td.appendChild(btn);
   tr.appendChild(td);
 
@@ -1658,6 +1731,30 @@ function deleteTrackerRow(btn) {
   btn.closest('tr').remove();
   updateTrackerFooter();
   saveTracker();
+}
+
+let _deleteTargetRow = null;
+
+function showDeleteConfirm(tr) {
+  _deleteTargetRow = tr;
+  const accent = localStorage.getItem('inv_accent_color') || accentColor || '#2a7c7c';
+  document.getElementById('deleteConfirmHead').style.background = accent;
+  document.getElementById('deleteConfirmOk').style.background   = accent;
+  document.getElementById('deleteConfirmModal').classList.add('open');
+  document.getElementById('deleteConfirmOk').onclick = function() {
+    if (_deleteTargetRow) {
+      _deleteTargetRow.remove();
+      _deleteTargetRow = null;
+      updateTrackerFooter();
+      saveTracker();
+    }
+    closeDeleteConfirm();
+  };
+}
+
+function closeDeleteConfirm() {
+  _deleteTargetRow = null;
+  document.getElementById('deleteConfirmModal').classList.remove('open');
 }
 
 function updateTrackerFooter() {
@@ -1723,6 +1820,8 @@ async function handlePDFFiles(files) {
         for (let i = 0; i < 3; i++) {
           cleaned = cleaned.replace(/([A-Za-z0-9£])\s([A-Za-z0-9£])/g, '$1$2');
         }
+        // Remove spaces around hyphens/dashes and slashes (fixes "INV – 014" → "INV-014", "3 / 2 / 2026" → "3/2/2026")
+        cleaned = cleaned.replace(/\s*–\s*/g, '-').replace(/\s*-\s*/g, '-').replace(/\s*\/\s*/g, '/');
         displayText = cleaned;
         lines = cleaned.split('\n').map(l => l.trim()).filter(Boolean);
         console.log('PDF TEXT (char-spacing collapsed):', displayText);
@@ -1820,19 +1919,25 @@ function parseConcatenatedPDF(text, matchLog) {
     if (clipped.length > 1) { result.client = clipped.slice(0, 40); if (matchLog) matchLog.client = 'after Billedto:'; }
   }
 
-  // Description: last token >5 chars before "Allinvoices", "Sort", or end — not postcode or pure number
-  const stopM = text.search(/Allinvoices|Sortcode|Sort code|Account/i);
+  // Description: last meaningful token — split on whitespace, filter noise, take last
+  const stopM = text.search(/Allinvoices|Sortcode|Sort\s*code|Account/i);
   const searchIn = stopM > 0 ? text.slice(0, stopM) : text;
-  const tokens = searchIn.split(/\s+/).filter(t =>
-    t.length > 5 &&
-    !/^\d+$/.test(t) &&
-    !/^[A-Z]\d/i.test(t) &&
-    !/\d[A-Z]$/i.test(t) &&
+  const descTokens = searchIn.split(/\s+/).filter(t =>
+    t.length >= 6 &&
     !/@/.test(t) &&
-    !/^[£$€]/.test(t) &&
-    !/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(t)
+    !/\./.test(t) &&
+    !/http/i.test(t) &&
+    !/Sort/i.test(t) &&
+    !/Account/i.test(t) &&
+    !/Monzo/i.test(t) &&
+    !/Pounds/i.test(t) &&
+    !/icloud/i.test(t) &&
+    !/gmail/i.test(t) &&
+    !/shown/i.test(t) &&
+    !/^\d+$/.test(t) &&
+    !/^[£$€]/.test(t)
   );
-  if (tokens.length > 0) { result.desc = tokens[tokens.length - 1]; if (matchLog) matchLog.desc = 'last token before stop'; }
+  if (descTokens.length > 0) { result.desc = descTokens[descTokens.length - 1]; if (matchLog) matchLog.desc = 'last filtered token'; }
 
   return result;
 }
