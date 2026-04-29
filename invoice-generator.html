@@ -377,17 +377,21 @@
       box-shadow: var(--shadow);
       background: #fff;
     }
+    .tracker-section {
+      width: 100%;
+      padding: 0 16px 60px;
+    }
     .tracker-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 12px;
-      min-width: 900px;
+      min-width: 1200px;
       table-layout: fixed;
     }
     .tracker-table th {
       background: var(--accent-dark);
       color: #fff;
-      padding: 8px 6px;
+      padding: 8px 8px;
       text-align: left;
       font-size: 11px;
       font-weight: 800;
@@ -396,18 +400,18 @@
       white-space: nowrap;
       overflow: hidden;
     }
-    .tracker-table th:nth-child(1)  { width: 70px; }
-    .tracker-table th:nth-child(2)  { width: 85px; }
-    .tracker-table th:nth-child(3)  { width: 110px; }
-    .tracker-table th:nth-child(4)  { width: 130px; }
-    .tracker-table th:nth-child(5)  { width: 75px; }
-    .tracker-table th:nth-child(6)  { width: 45px; }
-    .tracker-table th:nth-child(7)  { width: 85px; }
-    .tracker-table th:nth-child(8)  { width: 75px; }
-    .tracker-table th:nth-child(9)  { width: 75px; }
-    .tracker-table th:nth-child(10) { width: 70px; }
-    .tracker-table th:nth-child(11) { width: 80px; }
-    .tracker-table th:nth-child(12) { width: 36px; position: sticky; right: 0; background: var(--accent-dark); z-index: 3; box-shadow: -2px 0 6px rgba(0,0,0,0.12); }
+    .tracker-table th:nth-child(1)  { width: 84px; }
+    .tracker-table th:nth-child(2)  { width: 102px; }
+    .tracker-table th:nth-child(3)  { width: 132px; }
+    .tracker-table th:nth-child(4)  { width: 156px; }
+    .tracker-table th:nth-child(5)  { width: 90px; }
+    .tracker-table th:nth-child(6)  { width: 54px; }
+    .tracker-table th:nth-child(7)  { width: 102px; }
+    .tracker-table th:nth-child(8)  { width: 90px; }
+    .tracker-table th:nth-child(9)  { width: 90px; }
+    .tracker-table th:nth-child(10) { width: 84px; }
+    .tracker-table th:nth-child(11) { width: 96px; }
+    .tracker-table th:nth-child(12) { width: 42px; position: sticky; right: 0; background: var(--accent-dark); z-index: 3; box-shadow: -2px 0 6px rgba(0,0,0,0.12); }
     .tracker-table td {
       padding: 0;
       border-bottom: 1px solid var(--border);
@@ -436,7 +440,7 @@
       box-shadow: -2px 0 6px rgba(0,0,0,0.10);
       text-align: center;
       padding: 0 2px;
-      width: 36px;
+      width: 42px;
     }
     .tracker-del-btn {
       border: none;
@@ -706,6 +710,394 @@
       .page-content { padding: 0; max-width: 100%; }
       .invoice-card { box-shadow: none; border: 1px solid #eee; }
     }
+
+    /* ════════════════════════════════════════════
+       MOBILE LAYOUT — max-width: 768px
+       Desktop layout (above) is untouched.
+    ════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      /* Hide desktop-only regions */
+      .page-content,
+      .colour-picker-bar,
+      .tracker-section,
+      .section-divider { display: none !important; }
+      /* Controls bar: hide action buttons (replaced by sticky bar) */
+      .controls-bar .btn { display: none !important; }
+
+      /* ── Mobile form container ── */
+      #mobileForm {
+        display: block;
+        background: var(--bg);
+        padding-bottom: 90px; /* room for sticky bar */
+      }
+
+      /* ── Logo row ── */
+      .mob-logo-section {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+      }
+      .mob-logo-thumb {
+        width: 52px; height: 52px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        object-fit: contain;
+        background: #fafafa;
+        display: none;
+        flex-shrink: 0;
+      }
+      .mob-logo-thumb.has-logo { display: block; }
+      .mob-logo-upload-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #fff;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 0 16px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        color: var(--text);
+        font-family: var(--font);
+        min-height: 48px;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .mob-logo-remove {
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-size: 0.8rem;
+        cursor: pointer;
+        padding: 8px 4px;
+        font-family: var(--font);
+        display: none;
+        text-decoration: underline;
+      }
+      .mob-logo-remove.visible { display: block; }
+
+      /* ── Accordion sections ── */
+      .mob-accordion { margin-top: 8px; }
+      .mob-section {
+        background: #fff;
+        border-top: 1px solid var(--border);
+      }
+      .mob-section:last-child { border-bottom: 1px solid var(--border); }
+      .mob-section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 16px;
+        min-height: 56px;
+        cursor: pointer;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        transition: background .1s;
+      }
+      .mob-section-header:active { background: var(--accent-light); }
+      .mob-section-title {
+        flex: 1;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .mob-section-check {
+        font-size: 0.78rem;
+        color: #16a34a;
+        opacity: 0;
+        transition: opacity .2s;
+        flex-shrink: 0;
+        font-weight: 700;
+      }
+      .mob-section-check.done { opacity: 1; }
+      .mob-section-chevron {
+        font-size: 0.65rem;
+        color: var(--muted);
+        transition: transform .2s;
+        flex-shrink: 0;
+      }
+      .mob-section.open .mob-section-chevron { transform: rotate(180deg); }
+      .mob-section-body {
+        display: none;
+        padding: 4px 16px 20px;
+      }
+      .mob-section.open .mob-section-body { display: block; }
+
+      /* ── Form fields ── */
+      .mob-field { margin-bottom: 14px; }
+      .mob-field:last-child { margin-bottom: 0; }
+      .mob-label {
+        display: block;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--muted);
+        margin-bottom: 5px;
+      }
+      .mob-input {
+        display: block;
+        width: 100%;
+        padding: 13px 14px;
+        font-size: 16px; /* prevents iOS zoom */
+        font-family: var(--font);
+        color: var(--text);
+        background: #fff;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        outline: none;
+        -webkit-appearance: none;
+        appearance: none;
+        min-height: 50px;
+        transition: border-color .15s;
+      }
+      .mob-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(42,124,124,0.08); }
+      textarea.mob-input { min-height: 90px; resize: none; line-height: 1.5; }
+      .mob-two-col { display: flex; gap: 10px; }
+      .mob-two-col .mob-field { flex: 1; margin-bottom: 0; }
+
+      /* ── VAT row ── */
+      .mob-vat-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0 8px;
+      }
+      .mob-vat-label { flex: 1; font-size: 0.9rem; font-weight: 600; }
+      .mob-vat-status { font-size: 0.8rem; color: var(--muted); }
+
+      /* ── Line item cards ── */
+      #mobileLineBody { margin-bottom: 12px; }
+      .mob-line-card {
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 10px;
+        background: #fafafa;
+      }
+      .mob-line-desc {
+        display: block;
+        width: 100%;
+        padding: 12px 13px;
+        font-size: 16px;
+        font-family: var(--font);
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        outline: none;
+        -webkit-appearance: none;
+        appearance: none;
+        min-height: 50px;
+        margin-bottom: 10px;
+        background: #fff;
+        transition: border-color .15s;
+      }
+      .mob-line-desc:focus { border-color: var(--accent); }
+      .mob-line-row {
+        display: flex;
+        gap: 8px;
+        align-items: flex-end;
+      }
+      .mob-line-field { flex: 1; }
+      .mob-line-label {
+        display: block;
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+      .mob-line-input {
+        display: block;
+        width: 100%;
+        padding: 10px 11px;
+        font-size: 16px;
+        font-family: var(--font);
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        outline: none;
+        -webkit-appearance: none;
+        appearance: none;
+        min-height: 46px;
+        background: #fff;
+        transition: border-color .15s;
+      }
+      .mob-line-input:focus { border-color: var(--accent); }
+      .mob-line-amt-val {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--accent-dark);
+        padding: 10px 0;
+        white-space: nowrap;
+      }
+      .mob-line-del {
+        background: none;
+        border: none;
+        color: #bbb;
+        font-size: 1.1rem;
+        cursor: pointer;
+        padding: 8px;
+        min-width: 40px;
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        flex-shrink: 0;
+        margin-bottom: 1px;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .mob-line-del:active { color: var(--danger); background: #fef2f2; }
+      .mob-add-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        border: 1.5px dashed var(--accent);
+        border-radius: 8px;
+        background: none;
+        padding: 15px;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--accent);
+        cursor: pointer;
+        font-family: var(--font);
+        min-height: 52px;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .mob-add-item:active { background: var(--accent-light); }
+
+      /* ── Totals (inside line items section) ── */
+      .mob-totals {
+        margin-top: 18px;
+        border-top: 2px solid var(--border);
+        padding-top: 14px;
+      }
+      .mob-tot-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        font-size: 0.9rem;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .mob-tot-row.final {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--accent-dark);
+        border-top: 2px solid var(--accent);
+        margin-top: 8px;
+        padding-top: 10px;
+      }
+
+      /* ── Expense section ── */
+      #mobileExpenseList { margin-bottom: 8px; }
+      .mob-exp-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .mob-exp-thumb {
+        width: 54px; height: 54px;
+        object-fit: contain;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        flex-shrink: 0;
+        background: #fafafa;
+      }
+      .mob-exp-label {
+        flex: 1;
+        padding: 10px 12px;
+        font-size: 16px;
+        font-family: var(--font);
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        outline: none;
+        min-height: 44px;
+        -webkit-appearance: none;
+        appearance: none;
+        transition: border-color .15s;
+      }
+      .mob-exp-label:focus { border-color: var(--accent); }
+      .mob-exp-del {
+        background: none;
+        border: none;
+        color: #bbb;
+        font-size: 1.1rem;
+        cursor: pointer;
+        padding: 8px;
+        min-width: 40px;
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .mob-exp-del:active { color: var(--danger); }
+      .mob-add-exp {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        border: 1.5px dashed var(--border);
+        border-radius: 8px;
+        background: none;
+        padding: 15px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        font-family: var(--font);
+        min-height: 52px;
+        margin-top: 8px;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .mob-add-exp:active { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+      /* ── Sticky bottom bar ── */
+      #mobileStickyBar {
+        display: flex;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        z-index: 300;
+        padding: 10px 16px;
+        padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+        background: var(--accent-dark);
+        gap: 10px;
+        box-shadow: 0 -2px 16px rgba(0,0,0,0.2);
+      }
+      .mob-bar-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: var(--font);
+        min-height: 52px;
+        -webkit-tap-highlight-color: transparent;
+        transition: opacity .1s, transform .1s;
+      }
+      .mob-bar-btn:active { opacity: .85; transform: scale(.98); }
+      .mob-bar-new { background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.3); }
+      .mob-bar-pdf { background: #fff; color: var(--accent-dark); }
+    }
+
+    /* Hide mobile-only elements on desktop */
+    @media (min-width: 769px) {
+      #mobileForm,
+      #mobileStickyBar { display: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -728,6 +1120,250 @@
 
   <button class="btn btn-secondary" onclick="newInvoice()">+ New Invoice</button>
   <button class="btn btn-primary"   onclick="downloadPDF()">&#8595; Download PDF</button>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     MOBILE FORM VIEW  (hidden on desktop via CSS)
+═══════════════════════════════════════════════ -->
+<div id="mobileForm">
+
+  <!-- Logo row -->
+  <div class="mob-logo-section">
+    <img id="mobLogoThumb" class="mob-logo-thumb" alt="Logo">
+    <label class="mob-logo-upload-btn" for="logoInput">&#128247; Upload Logo</label>
+    <button class="mob-logo-remove" id="mobLogoRemove" onclick="removeLogo()">Remove</button>
+  </div>
+
+  <!-- Accordion sections -->
+  <div class="mob-accordion">
+
+    <!-- 1 · Your Details (open by default) -->
+    <div class="mob-section open" id="mob-sec-0">
+      <div class="mob-section-header" onclick="toggleMobSection(0)">
+        <span class="mob-section-title">Your Details</span>
+        <span class="mob-section-check" id="mob-chk-0">&#10003;</span>
+        <span class="mob-section-chevron">&#9660;</span>
+      </div>
+      <div class="mob-section-body">
+        <div class="mob-field">
+          <label class="mob-label">Business Name</label>
+          <input class="mob-input" data-mfield="businessName" type="text" placeholder="Your Business Name">
+        </div>
+        <div class="mob-field">
+          <label class="mob-label">Your Name</label>
+          <input class="mob-input" data-mfield="fromName" type="text" placeholder="Your Name">
+        </div>
+        <div class="mob-two-col" style="margin-bottom:14px">
+          <div class="mob-field">
+            <label class="mob-label">Email</label>
+            <input class="mob-input" data-mfield="businessEmail" type="email" inputmode="email" placeholder="hello@yourbusiness.com">
+          </div>
+          <div class="mob-field">
+            <label class="mob-label">Phone</label>
+            <input class="mob-input" data-mfield="businessPhone" type="tel" inputmode="tel" placeholder="+44 7700 000000">
+          </div>
+        </div>
+        <div class="mob-field">
+          <label class="mob-label">Website</label>
+          <input class="mob-input" data-mfield="businessWebsite" type="text" placeholder="www.yourbusiness.com">
+        </div>
+        <div class="mob-field">
+          <label class="mob-label">Address Line 1</label>
+          <input class="mob-input" data-mfield="fromAddr1" type="text" placeholder="123 Your Street">
+        </div>
+        <div class="mob-two-col" style="margin-bottom:14px">
+          <div class="mob-field">
+            <label class="mob-label">City</label>
+            <input class="mob-input" data-mfield="fromAddr2" type="text" placeholder="Your City">
+          </div>
+          <div class="mob-field">
+            <label class="mob-label">Postcode</label>
+            <input class="mob-input" data-mfield="fromPostcode" type="text" placeholder="AB1 2CD">
+          </div>
+        </div>
+        <div class="mob-field">
+          <label class="mob-label">Country</label>
+          <input class="mob-input" data-mfield="fromCountry" type="text" placeholder="United Kingdom">
+        </div>
+      </div>
+    </div>
+
+    <!-- 2 · Client Details -->
+    <div class="mob-section" id="mob-sec-1">
+      <div class="mob-section-header" onclick="toggleMobSection(1)">
+        <span class="mob-section-title">Client Details</span>
+        <span class="mob-section-check" id="mob-chk-1">&#10003;</span>
+        <span class="mob-section-chevron">&#9660;</span>
+      </div>
+      <div class="mob-section-body">
+        <div class="mob-field">
+          <label class="mob-label">Company Name</label>
+          <input class="mob-input" data-mfield="toCompany" type="text" placeholder="Client Company Ltd">
+        </div>
+        <div class="mob-field">
+          <label class="mob-label">Contact Name</label>
+          <input class="mob-input" data-mfield="toContact" type="text" placeholder="Contact Name">
+        </div>
+        <div class="mob-field">
+          <label class="mob-label">Address Line 1</label>
+          <input class="mob-input" data-mfield="toAddr1" type="text" placeholder="456 Client Street">
+        </div>
+        <div class="mob-two-col" style="margin-bottom:0">
+          <div class="mob-field">
+            <label class="mob-label">City</label>
+            <input class="mob-input" data-mfield="toAddr2" type="text" placeholder="Client City">
+          </div>
+          <div class="mob-field">
+            <label class="mob-label">Postcode</label>
+            <input class="mob-input" data-mfield="toPostcode" type="text" placeholder="EF3 4GH">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 · Invoice Details -->
+    <div class="mob-section" id="mob-sec-2">
+      <div class="mob-section-header" onclick="toggleMobSection(2)">
+        <span class="mob-section-title">Invoice Details</span>
+        <span class="mob-section-check" id="mob-chk-2">&#10003;</span>
+        <span class="mob-section-chevron">&#9660;</span>
+      </div>
+      <div class="mob-section-body">
+        <div class="mob-two-col" style="margin-bottom:14px">
+          <div class="mob-field">
+            <label class="mob-label">Invoice #</label>
+            <input class="mob-input" data-mfield="invoiceNum" type="text" placeholder="001">
+          </div>
+          <div class="mob-field">
+            <label class="mob-label">Title</label>
+            <input class="mob-input" data-mfield="invoiceTitle" type="text" placeholder="INVOICE">
+          </div>
+        </div>
+        <div class="mob-two-col" style="margin-bottom:14px">
+          <div class="mob-field">
+            <label class="mob-label">Date</label>
+            <input class="mob-input" data-mfield="invoiceDate" type="text" placeholder="dd Mon yyyy">
+          </div>
+          <div class="mob-field">
+            <label class="mob-label">Due Date</label>
+            <input class="mob-input" data-mfield="dueDate" type="text" placeholder="dd Mon yyyy">
+          </div>
+        </div>
+        <div class="mob-vat-row">
+          <span class="mob-vat-label">VAT Registered</span>
+          <span class="mob-vat-status" id="mobVatStatus">Not registered</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="mobileVatToggle"
+              onchange="toggleVAT(this.checked); document.getElementById('vatToggle').checked=this.checked; syncMobileVatStatus();">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="mob-field" id="mobVatNumField" style="display:none; margin-top:10px">
+          <label class="mob-label">VAT Number</label>
+          <input class="mob-input" data-mfield="vatNum" type="text" placeholder="GB000000000">
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 · Line Items -->
+    <div class="mob-section" id="mob-sec-3">
+      <div class="mob-section-header" onclick="toggleMobSection(3)">
+        <span class="mob-section-title">Line Items</span>
+        <span class="mob-section-check" id="mob-chk-3">&#10003;</span>
+        <span class="mob-section-chevron">&#9660;</span>
+      </div>
+      <div class="mob-section-body">
+        <div id="mobileLineBody"></div>
+        <button class="mob-add-item" onclick="mobileAddLineItem()">+ Add Item</button>
+        <div class="mob-totals">
+          <div class="mob-tot-row">
+            <span>Subtotal</span>
+            <span id="mob-t-subtotal">£0.00</span>
+          </div>
+          <div class="mob-tot-row" id="mob-vat-row" style="display:none">
+            <span>VAT (20%)</span>
+            <span id="mob-t-vat">£0.00</span>
+          </div>
+          <div class="mob-tot-row final">
+            <span>Total</span>
+            <span id="mob-t-total">£0.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5 · Expenses -->
+    <div class="mob-section" id="mob-sec-4">
+      <div class="mob-section-header" onclick="toggleMobSection(4)">
+        <span class="mob-section-title">Expenses</span>
+        <span class="mob-section-check" id="mob-chk-4">&#10003;</span>
+        <span class="mob-section-chevron">&#9660;</span>
+      </div>
+      <div class="mob-section-body">
+        <div id="mobileExpenseList"></div>
+        <button class="mob-add-exp" onclick="document.getElementById('expenseImgInput').click()">+ Add Expense Image</button>
+      </div>
+    </div>
+
+    <!-- 6 · Payment Details -->
+    <div class="mob-section" id="mob-sec-5">
+      <div class="mob-section-header" onclick="toggleMobSection(5)">
+        <span class="mob-section-title">Payment Details</span>
+        <span class="mob-section-check" id="mob-chk-5">&#10003;</span>
+        <span class="mob-section-chevron">&#9660;</span>
+      </div>
+      <div class="mob-section-body">
+        <div class="mob-two-col" style="margin-bottom:14px">
+          <div class="mob-field">
+            <label class="mob-label">Bank</label>
+            <input class="mob-input" data-mfield="bankName" type="text" placeholder="Your Bank">
+          </div>
+          <div class="mob-field">
+            <label class="mob-label">Account Name</label>
+            <input class="mob-input" data-mfield="accountName" type="text" placeholder="Your Name">
+          </div>
+        </div>
+        <div class="mob-two-col" style="margin-bottom:14px">
+          <div class="mob-field">
+            <label class="mob-label">Sort Code</label>
+            <input class="mob-input" data-mfield="sortCode" type="text" inputmode="numeric" placeholder="00-00-00">
+          </div>
+          <div class="mob-field">
+            <label class="mob-label">Account No.</label>
+            <input class="mob-input" data-mfield="accountNum" type="text" inputmode="numeric" placeholder="00000000">
+          </div>
+        </div>
+        <div class="mob-field">
+          <label class="mob-label">Reference</label>
+          <input class="mob-input" data-mfield="payRef" type="text" placeholder="INV-001">
+        </div>
+      </div>
+    </div>
+
+    <!-- 7 · Notes / Footer -->
+    <div class="mob-section" id="mob-sec-6">
+      <div class="mob-section-header" onclick="toggleMobSection(6)">
+        <span class="mob-section-title">Notes / Footer</span>
+        <span class="mob-section-check" id="mob-chk-6">&#10003;</span>
+        <span class="mob-section-chevron">&#9660;</span>
+      </div>
+      <div class="mob-section-body">
+        <div class="mob-field">
+          <label class="mob-label">Notes</label>
+          <textarea class="mob-input" data-mfield="notes" placeholder="Thank you for your business. Payment due within 30 days."></textarea>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /mob-accordion -->
+</div><!-- /mobileForm -->
+
+<!-- ══════════════════════════════════════════════
+     MOBILE STICKY BOTTOM BAR  (hidden on desktop)
+═══════════════════════════════════════════════ -->
+<div id="mobileStickyBar">
+  <button class="mob-bar-btn mob-bar-new" onclick="newInvoice()">+ New Invoice</button>
+  <button class="mob-bar-btn mob-bar-pdf" onclick="downloadPDF()">&#8595; Download PDF</button>
 </div>
 
 <div class="page-content">
@@ -919,12 +1555,14 @@
   </div>
   <!-- /invoice-card -->
 
-  <!-- ══════════════════════════════════════
-       INVOICE TRACKER
-  ═══════════════════════════════════════ -->
-  <hr class="section-divider">
+</div><!-- /page-content -->
 
-  <div class="tracker-section">
+<!-- ══════════════════════════════════════
+     INVOICE TRACKER
+═══════════════════════════════════════ -->
+<hr class="section-divider" style="margin:0 16px 32px;">
+
+<div class="tracker-section">
     <div class="section-header">
       <h2>Invoice Tracker</h2>
       <p>Track payments, expenses, and tax. Drop PDFs below to auto-import invoice data.</p>
@@ -969,8 +1607,6 @@
       </table>
     </div>
   </div>
-
-</div><!-- /page-content -->
 
 <!-- ── Delete confirm modal ── -->
 <div id="deleteConfirmModal">
@@ -1248,6 +1884,7 @@ function renderExpenseImages() {
     });
     container.appendChild(row);
   });
+  renderMobileExpenses();
 }
 
 function removeExpense(i) {
@@ -1285,6 +1922,7 @@ function renderLogo() {
     zone.classList.remove('has-logo');
     zone.onclick   = null;
   }
+  syncMobileLogo();
 }
 
 function removeLogo() {
@@ -1377,6 +2015,11 @@ document.addEventListener('DOMContentLoaded', () => {
     el.addEventListener('input', saveInvoice);
   });
 
+  // Wire mobile inputs → desktop spans → save
+  document.querySelectorAll('[data-mfield]').forEach(inp => {
+    inp.addEventListener('input', () => syncMobileField(inp.dataset.mfield, inp.value));
+  });
+
   // Auto-calculate due date when invoice date changes
   const invoiceDateEl = document.getElementById('f-invoiceDate');
   const onDateChange  = () => updateDueDateFrom(invoiceDateEl.textContent.trim());
@@ -1410,6 +2053,7 @@ function setCurrency(val) {
   updateTotals();
   updateTrackerFooter();
   saveInvoice();
+  rebuildMobileLineItems(); // refresh amount displays with new currency symbol
 }
 
 // ══════════════════════════════════════════════
@@ -1430,6 +2074,7 @@ function toggleVAT(checked) {
   document.querySelectorAll('#lineBody tr').forEach(tr => recalcRow(tr));
   updateTotals();
   saveInvoice();
+  syncMobileVatStatus();
 }
 
 // ══════════════════════════════════════════════
@@ -1518,6 +2163,7 @@ function updateTotals() {
   document.getElementById('t-subtotal').textContent = fmt(sub);
   document.getElementById('t-vat').textContent      = fmt(vat);
   document.getElementById('t-total').textContent    = fmt(total);
+  updateMobileTotals();
 }
 
 function getTotal() {
@@ -1561,6 +2207,7 @@ function newInvoice() {
   saveExpenses();
 
   saveInvoice();
+  syncMobileFromDesktop();
 }
 
 // ══════════════════════════════════════════════
@@ -1662,6 +2309,7 @@ function loadAll() {
   loadExpenses();
 
   updateTrackerFooter();
+  syncMobileFromDesktop();
 }
 
 function restoreInvoice(data) {
@@ -1919,25 +2567,60 @@ function parseConcatenatedPDF(text, matchLog) {
     if (clipped.length > 1) { result.client = clipped.slice(0, 40); if (matchLog) matchLog.client = 'after Billedto:'; }
   }
 
-  // Description: last meaningful token — split on whitespace, filter noise, take last
-  const stopM = text.search(/Allinvoices|Sortcode|Sort\s*code|Account/i);
-  const searchIn = stopM > 0 ? text.slice(0, stopM) : text;
-  const descTokens = searchIn.split(/\s+/).filter(t =>
-    t.length >= 6 &&
-    !/@/.test(t) &&
-    !/\./.test(t) &&
-    !/http/i.test(t) &&
-    !/Sort/i.test(t) &&
-    !/Account/i.test(t) &&
-    !/Monzo/i.test(t) &&
-    !/Pounds/i.test(t) &&
-    !/icloud/i.test(t) &&
-    !/gmail/i.test(t) &&
-    !/shown/i.test(t) &&
-    !/^\d+$/.test(t) &&
-    !/^[£$€]/.test(t)
-  );
-  if (descTokens.length > 0) { result.desc = descTokens[descTokens.length - 1]; if (matchLog) matchLog.desc = 'last filtered token'; }
+  // Description: priority order —
+  // (a) longest token after last £-amount and before Sort/Account/Monzo noise
+  // (b) fallback: last filtered token from pre-noise section
+  const noiseRx = /Allinvoices|Sortcode|Sort\s*code|Account|Monzo/i;
+  const noisePos = text.search(noiseRx);
+  const preNoise = noisePos > 0 ? text.slice(0, noisePos) : text;
+
+  // Shared token filter
+  const isDescNoise = t =>
+    t.length < 6 ||
+    !t ||
+    /@/.test(t) ||
+    /\./.test(t) ||
+    /http/i.test(t) ||
+    /Sort/i.test(t) ||
+    /Account/i.test(t) ||
+    /Monzo/i.test(t) ||
+    /Pounds/i.test(t) ||
+    /icloud/i.test(t) ||
+    /gmail/i.test(t) ||
+    /shown/i.test(t) ||
+    /number/i.test(t) ||
+    /code/i.test(t) ||
+    /^com$/i.test(t) ||
+    /^\d+$/.test(t) ||
+    /^[£$€]/.test(t) ||
+    /^£?\d+(?:\.\d{2})?$/.test(t) ||
+    /^[a-z]{2,}$/.test(t);   // all-lowercase collapsed fragment (email/URL artefact)
+
+  let foundDesc = null;
+
+  // (a) After the last £-amount in preNoise
+  const allAmts = [...preNoise.matchAll(/£\d+(?:\.\d{2})?/g)];
+  if (allAmts.length > 0) {
+    const lastAmtEnd = allAmts[allAmts.length - 1].index + allAmts[allAmts.length - 1][0].length;
+    const afterAmt = preNoise.slice(lastAmtEnd);
+    const candidatesA = afterAmt.split(/\s+/).filter(t => !isDescNoise(t));
+    if (candidatesA.length > 0) {
+      // Pick longest candidate
+      foundDesc = candidatesA.reduce((a, b) => b.length > a.length ? b : a);
+      if (matchLog) matchLog.desc = 'after last £ amount';
+    }
+  }
+
+  // (b) Fallback: last filtered token from preNoise
+  if (!foundDesc) {
+    const candidatesB = preNoise.split(/\s+/).filter(t => !isDescNoise(t));
+    if (candidatesB.length > 0) {
+      foundDesc = candidatesB[candidatesB.length - 1];
+      if (matchLog) matchLog.desc = 'last filtered token (fallback)';
+    }
+  }
+
+  if (foundDesc) result.desc = foundDesc;
 
   return result;
 }
@@ -2503,6 +3186,238 @@ function exportTrackerPDF() {
   });
 
   doc.save(`invoice-tracker-${trackerTimestamp()}.pdf`);
+}
+
+// ══════════════════════════════════════════════
+// MOBILE FORM — accordion, sync, line items
+// ══════════════════════════════════════════════
+
+// Which fields indicate each section is "done" (for the green ✓)
+const MOB_SECTION_FIELDS = [
+  ['businessName', 'fromName', 'businessEmail'],   // 0 Your Details
+  ['toCompany', 'toContact'],                       // 1 Client Details
+  ['invoiceNum', 'invoiceDate'],                    // 2 Invoice Details
+  null,                                             // 3 Line Items  (checked by row count)
+  null,                                             // 4 Expenses    (checked by image count)
+  ['bankName', 'accountName', 'sortCode'],          // 5 Payment Details
+  ['notes'],                                        // 6 Notes
+];
+
+function toggleMobSection(idx) {
+  const sec = document.getElementById('mob-sec-' + idx);
+  if (sec) sec.classList.toggle('open');
+}
+
+// Copy one mobile input value → hidden desktop span → save
+function syncMobileField(field, value) {
+  const span = document.querySelector('[data-field="' + field + '"]');
+  if (span) span.textContent = value;
+  // Invoice date triggers due-date auto-calc; mirror result back to mobile input
+  if (field === 'invoiceDate') {
+    updateDueDateFrom(value);
+    const ddInp  = document.querySelector('[data-mfield="dueDate"]');
+    const ddSpan = document.getElementById('f-dueDate');
+    if (ddInp && ddSpan) ddInp.value = ddSpan.textContent.trim();
+  }
+  saveInvoice();
+  updateMobCheckmarks();
+}
+
+// Copy all desktop span values → mobile inputs (called after loadAll / newInvoice)
+function syncMobileFromDesktop() {
+  document.querySelectorAll('[data-mfield]').forEach(inp => {
+    const span = document.querySelector('[data-field="' + inp.dataset.mfield + '"]');
+    if (span) inp.value = span.textContent.trim();
+  });
+  // VAT state
+  const mvat = document.getElementById('mobileVatToggle');
+  if (mvat) mvat.checked = vatOn;
+  syncMobileVatStatus();
+  // Line items
+  rebuildMobileLineItems();
+  // Logo
+  syncMobileLogo();
+  // Expenses
+  renderMobileExpenses();
+  // Totals
+  updateMobileTotals();
+  // Checkmarks
+  updateMobCheckmarks();
+}
+
+function syncMobileVatStatus() {
+  const statusEl  = document.getElementById('mobVatStatus');
+  const vatField  = document.getElementById('mobVatNumField');
+  const vatTotRow = document.getElementById('mob-vat-row');
+  if (statusEl)  statusEl.textContent = vatOn ? 'VAT registered' : 'Not registered';
+  if (vatField)  vatField.style.display  = vatOn ? '' : 'none';
+  if (vatTotRow) vatTotRow.style.display = vatOn ? '' : 'none';
+  updateMobileTotals();
+}
+
+function syncMobileLogo() {
+  const thumb     = document.getElementById('mobLogoThumb');
+  const removeBtn = document.getElementById('mobLogoRemove');
+  if (!thumb) return;
+  if (logoDataUrl) {
+    thumb.src = logoDataUrl;
+    thumb.classList.add('has-logo');
+    if (removeBtn) removeBtn.classList.add('visible');
+  } else {
+    thumb.src = '';
+    thumb.classList.remove('has-logo');
+    if (removeBtn) removeBtn.classList.remove('visible');
+  }
+}
+
+function updateMobileTotals() {
+  const subEl = document.getElementById('mob-t-subtotal');
+  const vatEl = document.getElementById('mob-t-vat');
+  const totEl = document.getElementById('mob-t-total');
+  if (!subEl) return;
+  subEl.textContent = document.getElementById('t-subtotal').textContent;
+  vatEl.textContent = document.getElementById('t-vat').textContent;
+  totEl.textContent = document.getElementById('t-total').textContent;
+}
+
+function updateMobCheckmarks() {
+  MOB_SECTION_FIELDS.forEach((fields, idx) => {
+    const check = document.getElementById('mob-chk-' + idx);
+    if (!check) return;
+    let done = false;
+    if (idx === 3) {
+      done = document.querySelectorAll('#lineBody tr').length > 0;
+    } else if (idx === 4) {
+      done = expenseImages.length > 0;
+    } else if (fields) {
+      done = fields.some(f => {
+        const inp  = document.querySelector('[data-mfield="' + f + '"]');
+        const span = document.querySelector('[data-field="' + f + '"]');
+        const val  = (inp && inp.value.trim()) || (span && span.textContent.trim()) || '';
+        return val.length > 0;
+      });
+    }
+    check.classList.toggle('done', done);
+  });
+}
+
+// ── Mobile line items ─────────────────────────
+
+function addMobileLineCard(rowid, data) {
+  const container = document.getElementById('mobileLineBody');
+  if (!container) return;
+
+  const card = document.createElement('div');
+  card.className   = 'mob-line-card';
+  card.dataset.mid = rowid;
+
+  card.innerHTML = `
+    <input type="text" class="mob-line-desc" placeholder="Description" value="${esc(data.desc || '')}">
+    <div class="mob-line-row">
+      <div class="mob-line-field">
+        <label class="mob-line-label">Qty</label>
+        <input type="text" inputmode="decimal" class="mob-line-input" data-mob-col="qty"
+               value="${esc(data.qty !== undefined ? data.qty : '1')}">
+      </div>
+      <div class="mob-line-field">
+        <label class="mob-line-label">Unit Price</label>
+        <input type="text" inputmode="decimal" class="mob-line-input" data-mob-col="price"
+               value="${esc(data.price !== undefined ? data.price : '0.00')}">
+      </div>
+      <div class="mob-line-field">
+        <label class="mob-line-label">Amount</label>
+        <div class="mob-line-amt-val" data-mob-col="amt">£0.00</div>
+      </div>
+      <button class="mob-line-del" title="Remove">&#215;</button>
+    </div>`;
+
+  const descInp  = card.querySelector('.mob-line-desc');
+  const qtyInp   = card.querySelector('[data-mob-col="qty"]');
+  const priceInp = card.querySelector('[data-mob-col="price"]');
+  const amtDisp  = card.querySelector('[data-mob-col="amt"]');
+  const delBtn   = card.querySelector('.mob-line-del');
+
+  function pushToDesktop() {
+    const tr = document.querySelector('#lineBody tr[data-rowid="' + rowid + '"]');
+    if (!tr) return;
+    tr.querySelector('[data-col="desc"]').textContent  = descInp.value;
+    tr.querySelector('[data-col="qty"]').textContent   = qtyInp.value;
+    tr.querySelector('[data-col="price"]').textContent = priceInp.value;
+    recalcRow(tr);
+    amtDisp.textContent = tr.querySelector('[data-col="lineAmt"]').textContent;
+    updateMobileTotals();
+    saveInvoice();
+    updateMobCheckmarks();
+  }
+
+  descInp.addEventListener('input',  pushToDesktop);
+  qtyInp.addEventListener('input',   pushToDesktop);
+  priceInp.addEventListener('input', pushToDesktop);
+
+  delBtn.addEventListener('click', () => {
+    const tr = document.querySelector('#lineBody tr[data-rowid="' + rowid + '"]');
+    if (tr) { tr.remove(); updateTotals(); saveInvoice(); }
+    card.remove();
+    updateMobCheckmarks();
+  });
+
+  container.appendChild(card);
+
+  // Set initial amount display from desktop row
+  const deskTr = document.querySelector('#lineBody tr[data-rowid="' + rowid + '"]');
+  if (deskTr) amtDisp.textContent = deskTr.querySelector('[data-col="lineAmt"]').textContent;
+}
+
+function rebuildMobileLineItems() {
+  const container = document.getElementById('mobileLineBody');
+  if (!container) return;
+  container.innerHTML = '';
+  document.querySelectorAll('#lineBody tr').forEach(tr => {
+    addMobileLineCard(tr.dataset.rowid, {
+      desc:  tr.querySelector('[data-col="desc"]').textContent.trim(),
+      qty:   tr.querySelector('[data-col="qty"]').textContent.trim(),
+      price: tr.querySelector('[data-col="price"]').textContent.trim(),
+    });
+  });
+}
+
+function mobileAddLineItem() {
+  addLineItem(); // creates desktop row
+  const rows = document.querySelectorAll('#lineBody tr');
+  if (!rows.length) return;
+  const newTr = rows[rows.length - 1];
+  addMobileLineCard(newTr.dataset.rowid, {});
+  updateMobCheckmarks();
+}
+
+// ── Mobile expense images ─────────────────────
+
+function renderMobileExpenses() {
+  const container = document.getElementById('mobileExpenseList');
+  if (!container) return;
+  container.innerHTML = '';
+  expenseImages.forEach((img, i) => {
+    const row = document.createElement('div');
+    row.className = 'mob-exp-row';
+    row.innerHTML = `
+      <img class="mob-exp-thumb" src="${img.dataUrl}" alt="Expense ${i + 1}">
+      <input type="text" class="mob-exp-label" placeholder="Label…" value="${esc(img.label || '')}">
+      <button class="mob-exp-del" title="Remove">&#215;</button>`;
+    const labelInp = row.querySelector('.mob-exp-label');
+    const delBtn   = row.querySelector('.mob-exp-del');
+    labelInp.addEventListener('input', () => {
+      expenseImages[i].label = labelInp.value.trim();
+      saveExpenses();
+      // Sync label text into desktop span only (no full re-render to avoid losing focus)
+      const deskLabels = document.querySelectorAll('#expenseList [data-expense-idx]');
+      if (deskLabels[i]) deskLabels[i].textContent = expenseImages[i].label;
+    });
+    delBtn.addEventListener('click', () => {
+      removeExpense(i); // handles desktop list + saves + re-renders both via renderExpenseImages
+    });
+    container.appendChild(row);
+  });
+  updateMobCheckmarks();
 }
 </script>
 </body>
