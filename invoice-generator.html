@@ -447,6 +447,11 @@
     .logo-zone.has-logo:hover { border-color: var(--accent); background: var(--accent-light); }
     .logo-zone img { max-height: 80px; max-width: 180px; object-fit: contain; display: block; pointer-events: none; }
     .logo-zone-placeholder { font-size: 0.72rem; color: var(--muted); line-height: 1.5; pointer-events: none; }
+    .logo-remove-btn {
+      display: block; margin-top: 5px; font-size: 0.68rem; color: var(--danger);
+      background: none; border: none; cursor: pointer; padding: 0; text-decoration: underline;
+      pointer-events: auto;
+    }
     #logoInput { display: none; }
 
     /* ── Tracker export bar ── */
@@ -915,7 +920,7 @@ function setStatus(msg) {
 function renderLogo() {
   const zone = document.getElementById('logoZone');
   if (logoDataUrl) {
-    zone.innerHTML = `<img src="${logoDataUrl}" alt="Logo">`;
+    zone.innerHTML = `<img src="${logoDataUrl}" alt="Logo"><button class="logo-remove-btn" onclick="removeLogo(event)">&#215; Remove</button>`;
     zone.title     = 'Click or drop to replace logo';
     zone.classList.add('has-logo');
   } else {
@@ -923,6 +928,15 @@ function renderLogo() {
     zone.title     = 'Click or drop an image to add your logo';
     zone.classList.remove('has-logo');
   }
+}
+
+function removeLogo(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  logoDataUrl = null;
+  logoDims    = null;
+  localStorage.removeItem('inv_logo');
+  renderLogo();
 }
 
 function loadLogoFromDataUrl(dataUrl) {
@@ -1301,6 +1315,7 @@ function addTrackerRow(data) {
 }
 
 function deleteTrackerRow(btn) {
+  if (!confirm('Are you sure you want to delete this row? This cannot be undone.')) return;
   btn.closest('tr').remove();
   updateTrackerFooter();
   saveTracker();
@@ -1356,11 +1371,24 @@ async function handlePDFFiles(files) {
 
   for (const file of files) {
     try {
-      const { pages, lines } = await extractPDFText(file);
+      let { pages, lines } = await extractPDFText(file);
+
+      // Detect and fix character-spaced PDFs
+      const rawFull = pages.join('\n\n--- PAGE BREAK ---\n\n');
+      let displayText = rawFull;
+      let wasSpaced   = false;
+      if (isCharSpaced(rawFull)) {
+        wasSpaced   = true;
+        const cleanPages = pages.map(p => collapseCharSpacing(p));
+        pages       = cleanPages;
+        lines       = cleanPages.join('\n').split('\n').map(l => l.trim()).filter(Boolean);
+        displayText = cleanPages.join('\n\n--- PAGE BREAK ---\n\n');
+        console.log('PDF RAW TEXT (character-spacing collapsed):', displayText);
+      } else {
+        console.log('PDF RAW TEXT:', rawFull);
+      }
 
       // Raw text debug panel
-      const fullText = pages.join('\n\n--- PAGE BREAK ---\n\n');
-      console.log('PDF RAW TEXT:', fullText);
       const existingDbg = document.getElementById('pdf-debug');
       if (existingDbg) existingDbg.remove();
       const dbgDiv = document.createElement('div');
@@ -1371,9 +1399,10 @@ async function handlePDFFiles(files) {
       closeBtn.style.cssText = 'display:block;margin-bottom:8px;cursor:pointer;';
       closeBtn.onclick = () => dbgDiv.remove();
       dbgDiv.appendChild(closeBtn);
-      const content = document.createElement('div');
-      content.innerHTML = '<strong>RAW PDF TEXT:</strong>\n\n' + fullText.replace(/&/g,'&amp;').replace(/</g,'&lt;');
-      dbgDiv.appendChild(content);
+      const dbgContent = document.createElement('div');
+      const dbgLabel   = wasSpaced ? '<strong>CLEANED PDF TEXT (char-spacing collapsed):</strong>' : '<strong>RAW PDF TEXT:</strong>';
+      dbgContent.innerHTML = dbgLabel + '\n\n' + displayText.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+      dbgDiv.appendChild(dbgContent);
       document.body.appendChild(dbgDiv);
 
       // Debug: log raw text to console page by page
@@ -1403,6 +1432,24 @@ async function handlePDFFiles(files) {
 }
 
 // Extract text from each page using Y-coordinate grouping to reconstruct real lines.
+function isCharSpaced(text) {
+  // More than 30% of characters are isolated single letters/digits surrounded by spaces
+  const singles = (text.match(/(?<![^ ]) [A-Za-z0-9£] (?![^ ])/g) || []).length;
+  const total   = text.replace(/\s/g, '').length;
+  return total > 0 && (singles / total) > 0.30;
+}
+
+function collapseCharSpacing(text) {
+  // Collapse spaces between individual characters until stable
+  let prev = null;
+  while (prev !== text) {
+    prev = text;
+    text = text.replace(/(?<=[A-Za-z£0-9]) (?=[A-Za-z£0-9])/g, '');
+  }
+  // Collapse any runs of multiple spaces to a single space
+  return text.replace(/ {2,}/g, ' ').trim();
+}
+
 async function extractPDFText(file) {
   const buf  = await file.arrayBuffer();
   const pdf  = await pdfjsLib.getDocument({ data: buf }).promise;
@@ -1452,9 +1499,11 @@ function parsePDFText(lines, filename) {
   const failed = [];
 
   // ── Invoice number ──────────────────────────────────────
+  // INV_INLINE: "Invoice #: INV-001" style — must have a label qualifier, captures the value after it
   const INV_INLINE  = /invoice\s*(?:no\.?|number|#|num\.?)\s*[:\-]?\s*([A-Z0-9][A-Z0-9\-\/\.]{1,20})/i;
   const INV_LABEL   = /^invoice\s*(?:no\.?|number|#|num\.?)$/i;
-  const INV_PREFIX  = /\b(INV[-\/]?[A-Z0-9]+)\b/i;
+  // INV_PREFIX: must have dash/slash OR be INV followed immediately by digits — avoids matching "INVOICE"
+  const INV_PREFIX  = /\b(INV[-\/][A-Z0-9]+|INV\d+)\b/i;
   const INV_HASH    = /#\s*(\d+)/;
   let found = false;
   for (let i = 0; i < lines.length && !found; i++) {
@@ -1525,23 +1574,38 @@ function parsePDFText(lines, filename) {
   if (!found) failed.push('amount');
 
   // ── Client ──────────────────────────────────────────────
-  const CLI_LABEL  = /^(?:bill(?:ed)?\s*to|to|client|customer|sold\s*to)\s*:?\s*$/i;
+  const CLI_LABEL  = /(?:bill(?:ed)?\s*to|client|customer|sold\s*to)\s*:?\s*$/i;
   const CLI_INLINE = /(?:bill(?:ed)?\s*to|client|customer|sold\s*to)\s*[:\-]\s*(.+)/i;
   found = false;
   for (let i = 0; i < lines.length && !found; i++) {
     const l = lines[i].trim();
     let m;
     if (CLI_LABEL.test(l)) {
+      // Strategy A: text after the label on the same line, split on 2+ spaces — take 2nd token if present else 1st
+      const afterLabel = l.replace(/.*(?:bill(?:ed)?\s*to|client|customer|sold\s*to)\s*:?\s*/i, '').trim();
+      if (afterLabel) {
+        const tokens = afterLabel.split(/\s{2,}/);
+        const pick   = (tokens[1] || tokens[0]).trim();
+        if (pick && /^[A-Z]/i.test(pick) && !DATE_RE.test(pick)) {
+          result.client = pick.slice(0, 80);
+          found = true;
+        }
+      }
+      // Strategy B: look at the next few lines
       for (let j = i+1; j < Math.min(i+5, lines.length) && !found; j++) {
         const next = lines[j].trim();
-        // Must start with a capital letter and look like a name/company, not a date or address
-        if (next && /^[A-Z]/.test(next) && !DATE_RE.test(next) && !/^\d/.test(next)) {
-          result.client = next.slice(0, 80);
+        // Split on 2+ spaces in case multiple fields are on one line; take 2nd token if present else 1st
+        const tokens = next.split(/\s{2,}/);
+        const pick   = (tokens[1] && /^[A-Z]/i.test(tokens[1].trim()) && !DATE_RE.test(tokens[1]) ? tokens[1] : tokens[0]).trim();
+        if (pick && /^[A-Z]/i.test(pick) && !DATE_RE.test(pick) && !/^\d/.test(pick) && !CLI_LABEL.test(pick)) {
+          result.client = pick.slice(0, 80);
           found = true;
         }
       }
     } else if ((m = l.match(CLI_INLINE)) && m[1].trim()) {
-      result.client = m[1].trim().slice(0, 80);
+      const tokens = m[1].trim().split(/\s{2,}/);
+      const pick   = (tokens[1] || tokens[0]).trim();
+      result.client = pick.slice(0, 80);
       found = true;
     }
   }
